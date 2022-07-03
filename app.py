@@ -1,7 +1,7 @@
-from motionDetectionHandler import MotionDetectionHandler
+from controller import Controller
 from time import sleep
 
-mdh = MotionDetectionHandler()
+controller = Controller()
 
 while True:
     sleep(10)

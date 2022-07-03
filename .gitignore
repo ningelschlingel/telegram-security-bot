@@ -168,3 +168,4 @@ cython_debug/
 # Ignore PiCamera and converted videos
 .h264
 .mp4
+config.py
