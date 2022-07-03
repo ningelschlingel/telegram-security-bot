@@ -9,6 +9,14 @@ To be somewhat sure, that no unauthorized users get access to these video-record
 
 ## Installation
 
+TODO: use venv, install script ...
+For now: clone project, install needed dependencies ...
+
+If you're new to telegram-bots, you can find an introduction by telegram [here](https://core.telegram.org/bots).
+Once you received your api-token, you can insert it in the [config.py]([config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L2-L3) file along with a self-selected first activation token for you, the owner.
+
+Once the bot is live, you will be able to register youself with that owner-token and take control so that no unauthorized persons have access to the surveillance videos.
+
 ### Raspberry Pi Setup
 
 Whether you are using an already set up Pi or a new one, make sure that you activate the camera and ssh if needed in the `raspi-config`.
@@ -29,5 +37,5 @@ The radar-sensor in my case has five pins which I soldered onto the Pi as follow
 - VIN <-> 5V     (PIN 2)  
 - CDS <-> None
 
-This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py) accordingly.
+This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L5) accordingly.
 
