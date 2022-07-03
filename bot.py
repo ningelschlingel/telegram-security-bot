@@ -33,7 +33,7 @@ class SurveillanceBot():
         
         #: Register clear-command-handler
         owner_clear_all_users_and_admins_command_handler = CommandHandler('clear', self.owner_clear_all_users_and_admins_command_callback)
-        self.displatcher.add_handler(owner_clear_all_users_and_admins_command_handler)
+        self.dispatcher.add_handler(owner_clear_all_users_and_admins_command_handler)
         
         #: Init users and admin dict
         self.users = {}
@@ -219,7 +219,7 @@ class SurveillanceBot():
         
         #: Iterate over given list and send message to each user
         for user in lst: 
-            self.updater.bot.send_message(chat_id=chat_id, text=text)
+            self.updater.bot.send_message(chat_id=user, text=text)
     
     def _send_text_msg(self, chat_id, text) -> None:
         ''' Sends message to chat_id
