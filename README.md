@@ -13,7 +13,7 @@ TODO: use venv, install script ...
 For now: clone project, install needed dependencies ...
 
 If you're new to telegram-bots, you can find an introduction by telegram [here](https://core.telegram.org/bots).
-Once you received your api-token, you can insert it in the [config.py]([config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L2-L3) file along with a self-selected first activation token for you, the owner.
+Once you received your api-token, you can insert it in the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L2-L3) file along with a self-selected first activation token for you, the owner.
 
 Once the bot is live, you will be able to register youself with that owner-token and take control so that no unauthorized persons have access to the surveillance videos.
 
