@@ -47,7 +47,7 @@ class SurveillanceBot():
         self.tokens = {}
         
         #: Register owner token
-        owner_token = Token(cfg.OWNER_ROLE, 1)
+        owner_token = Token(cfg.ROLE_TO_RANK[cfg.OWNER_ROLE], 1)
         owner_token.value = cfg.OWNER_ACTIVATION_TOKEN
         self.tokens[owner_token.value] = owner_token
         
@@ -77,22 +77,26 @@ class SurveillanceBot():
         #: Remove expired tokens
         self._clean_tokens()
         
-        #: check if provided token is valid
-        if context.args and context.args[0] in self.tokens:
-            
-            #: remove token
-            token = self.tokens.pop(context.args[0])
-            
-            #: create and save user
-            user = User(chat_id, update.message.from_user.username, token.role)
-            self.users[chat_id] = user
-            
-            #: add as admin if token allows
-            if token.role >= cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]:
-                self.admins[chat_id] = user
+        #: catch invalid token
+        if not context.args or context.args[0] not in self.tokens:
             
             #: inform user
-            self._send_text_msg(chat_id, text='Registered as {}!'.format(cfg.ROLES[cfg.RANK_TO_ROLE[token.role]]))
+            self._send_text_msg(chat_id, text='Token invalid.')
+            return
+            
+        #: get and remove token
+        token = self.tokens.pop(context.args[0])
+        
+        #: create and save user
+        user = User(chat_id, update.message.from_user.username, token.role)
+        self.users[chat_id] = user
+        
+        #: add as admin if token allows
+        if token.role >= cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]:
+            self.admins[chat_id] = user
+        
+        #: inform user
+        self._send_text_msg(chat_id, text='Registered as {}!'.format(cfg.ROLES[cfg.RANK_TO_ROLE[token.role]]))
 
     def mod_show_users_with_roles_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /users command - ADMIN
