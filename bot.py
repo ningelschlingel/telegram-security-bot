@@ -1,11 +1,11 @@
-from time import sleep
-import time
 import logging
 from telegram import Update
 from telegram.ext import Updater, CallbackContext, CommandHandler
+
+import utils
+import config as cfg
 from user import User
 from usertoken import Token
-import config as cfg
 
 class SurveillanceBot():
     
@@ -187,7 +187,7 @@ class SurveillanceBot():
         
         #: Iterate admins and send video to each
         for admin in self.admins: 
-            self.updater.bot.send_video(admin, open(video, 'rb'), True)
+            self.updater.bot.send_video(chat_id=admin, video=open(video, 'rb'), supports_streaming=True,  caption=utils.basename(video))
     
     def _is_authorized(self, chat_id, command_authorization_level) -> bool:
         ''' Check if user with given chat_id is authorized for command
