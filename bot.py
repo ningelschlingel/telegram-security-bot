@@ -199,7 +199,7 @@ class SurveillanceBot():
 
         update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
 
-    def admin_ban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
+    def admin_unban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
         '''
         '''
 
@@ -245,7 +245,7 @@ class SurveillanceBot():
         self.users[chat_id] = owner
 
 
-    def button(update: Update, context: CallbackContext) -> None:
+    def button(self, update: Update, context: CallbackContext) -> None:
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
 
