@@ -1,6 +1,6 @@
 import logging
-from telegram import Update, Poll
-from telegram.ext import Updater, CallbackContext, CommandHandler, PollAnswerHandler
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CallbackContext, CommandHandler
 
 import utils
 import config as cfg
@@ -187,26 +187,18 @@ class SurveillanceBot():
             return
         ###########################
 
-        options = ["Good", "Really good", "Fantastic", "Great"]
+        keyboard = [
+            [
+                InlineKeyboardButton("Option 1", callback_data="1"),
+                InlineKeyboardButton("Option 2", callback_data="2"),
+            ],
+            [InlineKeyboardButton("Option 3", callback_data="3")],
+        ]
 
-        message = context.bot.send_poll(
-            chat_id,
-            "Choose users to ban:",
-            options,
-            is_anonymous=False,
-            allows_multiple_answers=True,
-        )
-        # Save some info about the poll the bot_data for later use in receive_poll_answer
-        payload = {
-            message.poll.id: {
-                "options": options,
-                "message_id": message.message_id,
-                "chat_id": update.effective_chat.id,
-                "answers": 0,
-            }
-        }
-        context.bot_data.update(payload)
-    
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        update.message.reply_text("Please choose:", reply_markup=reply_markup)
+        
     def owner_clear_all_users_and_admins_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - OWNER
 
