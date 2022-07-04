@@ -1,5 +1,26 @@
 # telegram-security-bot
-Motion activated videos via telegram
+Motion activated surveillance videos via telegram
+
+- [Introduction](#introduction)
+- [Installation](#installation)
+  - [Raspberry Pi setup](#raspberry-pi-setup)
+  - [Clone Project](#clone-project)
+  - [Create your Telegram-Bot](#create-your-telegram-bot)
+  - [What are you up to?](#what-are-you-up-to)
+  - [Script setup](#script-setup)
+  - [Manual setup](#manual-setup)
+- [Hardware setup](#hardware-setup)
+  - [Required parts](#required-parts)
+  - [Wiring](#wiring)
+- [Usage](#usage)
+  - [Commands](#commands)
+    - [Example](#example)
+    - [Activate token](#activate-token)
+    - [Show users](#show-users)
+    - [Generate token](#generate-token)
+    - [Clear](#clear)
+  - [Roles](#roles)
+
 
 # Introduction
 
@@ -9,12 +30,15 @@ To be somewhat sure, that no unauthorized users get access to these video-record
 
 # Installation
 
+### Raspberry Pi setup
+
+Whether you are using an already set up Pi or a new one, make sure that you activate the camera and ssh if needed in the `raspi-config`.
+
 ### Clone Project
 
   ```
   git clone https://github.com/ningelsohn/wordclock.git
   ```
-  
   
 
 ### Create your Telegram-Bot
@@ -35,6 +59,7 @@ If you dont want to use `venv` or a `systemd service`  you can jump to the [manu
   ```bash
   sudo telegram-security-bot/install.sh
   ```
+  
   <details>
   <summary>What does this script do?</summary>
   <br>
@@ -43,7 +68,6 @@ If you dont want to use `venv` or a `systemd service`  you can jump to the [manu
   - Installing MP4Box for .h264-to-.mp4 converting
   - Adjusting the [.service-file](https://github.com/ningelsohn/telegram-security-bot/blob/main/app.service#L6) according to the app-location
   - Installing and activating systemd service (stars the app automatically)
-
   </details>
   
 Check service status
@@ -92,38 +116,37 @@ python3 -m app.py
 
 If you decide to set up the systemd service on your own, make sure to replace both [placeholders](https://github.com/ningelsohn/telegram-security-bot/blob/main/app.service#L6).
 
-
-### Raspberry Pi Setup
-
-Whether you are using an already set up Pi or a new one, make sure that you activate the camera and ssh if needed in the `raspi-config`.
-
-# Hardware Setup
+# Hardware setup
 
 ### Required Parts:
 - Raspberry Pi zero W
 - Raspberry Pi (zero) camera
 - RCWL-0516 radar-sensor
 
-The camera is simply plugged in with the enclosed ribbon cable. If you're buying a camera for this project, keep in mind that Pi Zero camera cables dont fit the bigger Pi's and vice versa.
-The radar-sensor in my case has five pins which I soldered onto the Pi as follows:
+### Wiring
 
-- 3V3 <-> None
-- GND <-> GROUND (PIN 6)  
-- OUT <-> GPIO 4 (PIN 7)  
-- VIN <-> 5V     (PIN 2)  
-- CDS <-> None
+The camera is simply plugged in with the enclosed ribbon cable. If you're buying a camera for this project, keep in mind that Pi Zero camera cables dont fit the bigger Pi's and vice versa.
+The radar-sensor in my case has five pins which are soldered onto the Pi as follows:
+
+RCWL-0516 Pin | Raspberry Pi Zero W
+--------------|------------------------
+3V3           | 
+GND           | PIN 6 (GROUND)
+OUT           | PIN 7 (GPIO 4)
+VIN           | PIN 2 (5V)
+CDS           |
 
 This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L5) accordingly.
 
 # Usage
 
-
-
 Now that your bot is up and runnning, you should register yourself as the owner as long as the `OWNER_ACTIVATION_TOKEN` is valid.
 
-## Commands
+### Commands
 
-### Example
+***
+
+#### Example
 
 To understand the following list of commands, take a look at this example.
 The first section is the name of the command. This is, what the set up handlers respond to.  
@@ -139,9 +162,9 @@ Furthermore, the `*ROLE` value indicates which role is required at least to use 
 ```
 /command <PARAM_NAME:[<VALUE1>, <VALUE2>]> <?OPTIONAL_PARAM_NAME:DATATYPE> *ROLE
 ```
+---
 
-
-### Activate token
+#### Activate token
 
 Use the `/activate` command to register as a new user. 
 The token determines your authorizations.
@@ -154,7 +177,9 @@ Usually a token is only valid for one day, so register promptly.
 
 Example: `/activate HG3TL4NZE9M7`
 
-### Show users
+---
+
+#### Show users
 
 Use the `/users` command to get a list of all registered users.
 
@@ -164,8 +189,9 @@ Use the `/users` command to get a list of all registered users.
 
 Example: `/users`
 
+---
 
-### Generate token
+#### Generate token
 
 Use the `/token` command to generate new tokens.
 This is the only way to give other users access to the surveillance.
@@ -181,8 +207,9 @@ Take a look into the [role table](#roles) for a rough feature overview.
 
 Example: `/token -a 3`
 
+---
 
-### Clear all users
+#### Clear
 
 Use the `/clear` command to clear all registered users and currently pending tokens.
 
@@ -192,8 +219,9 @@ Use the `/clear` command to clear all registered users and currently pending tok
 
 Example: `/clear`
 
+---
 
-## Roles
+### Roles
 
 role level | role name   | role          | features                                                                    | create option
 -----------| ------------| ------------- |-----------------------------------------------------------------------------|---------------
