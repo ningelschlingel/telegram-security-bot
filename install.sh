@@ -53,12 +53,12 @@ systemctl daemon-reload
 
 echo "Enable app service ..."
 #: [sudo]
-#: - Enable led controller service to start it automatically after reboot
+#: - Enable app service to start automatically after reboot
 systemctl enable app.service
 
 echo "Start app service ..."
 #: [sudo]
-#: - Start led controller service to start it now without reboot
+#: - Start app service now without reboot
 systemctl start app.service
 
 echo "DONE"
