@@ -1,5 +1,4 @@
 import time
-import string
 import logging
 from threading import Thread
 from camera import Camera
@@ -26,13 +25,16 @@ class Controller():
         #: Init logger
         self.logger = logging.getLogger(__name__)
         
-        self.paused = False #TODO allow pausing the surveillance
+        self.surveillance_paused = True # ATTENTION! no surveillance TODO TODO TODO
         self.no_detection_timeframe_start = None #TODO allow to set starttime of a no-detection timeframe
         self.no_detection_timeframe_end = None #TODO allow to set endtime of a no-detection timeframe
         
     def motion_state_change(self, is_motion_start):
         '''
         '''
+
+        if self.surveillance_paused:
+            return
         
         #:
         if is_motion_start:

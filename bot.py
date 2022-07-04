@@ -1,6 +1,6 @@
 import logging
-from telegram import Update
-from telegram.ext import Updater, CallbackContext, CommandHandler
+from telegram import Update, Poll
+from telegram.ext import Updater, CallbackContext, CommandHandler, PollAnswerHandler
 
 import utils
 import config as cfg
@@ -34,6 +34,10 @@ class SurveillanceBot():
         #: Register cleartokens-command-handler
         admin_clear_tokens_command_handler = CommandHandler('cleartokens', self.admin_clear_tokens_command_callback)
         self.dispatcher.add_handler(admin_clear_tokens_command_handler)
+
+        #: Register ban-command-handler
+        admin_ban_user_command_handler = CommandHandler('ban', self.admin_ban_user_command_callback)
+        self.dispatcher.add_handler(admin_ban_user_command_handler)
         
         #: Register clear-command-handler
         owner_clear_all_users_and_admins_command_handler = CommandHandler('clear', self.owner_clear_all_users_and_admins_command_callback)
@@ -169,6 +173,39 @@ class SurveillanceBot():
         ###########################
 
         self.tokens.clear()
+
+    def admin_ban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
+        '''
+        '''
+
+        chat_id = update.effective_chat.id
+        
+        ### Check authorization ###
+        authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
+        if not self._is_authorized(chat_id, authorization_level):
+            self._send_text_msg(chat_id, 'Unauthorized!')
+            return
+        ###########################
+
+        options = ["Good", "Really good", "Fantastic", "Great"]
+
+        message = context.bot.send_poll(
+            chat_id,
+            "Choose users to ban:",
+            options,
+            is_anonymous=False,
+            allows_multiple_answers=True,
+        )
+        # Save some info about the poll the bot_data for later use in receive_poll_answer
+        payload = {
+            message.poll.id: {
+                "options": options,
+                "message_id": message.message_id,
+                "chat_id": update.effective_chat.id,
+                "answers": 0,
+            }
+        }
+        context.bot_data.update(payload)
     
     def owner_clear_all_users_and_admins_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - OWNER
