@@ -39,7 +39,7 @@ su "$(logname)" -c "install_req ${SCRIPT_DIR}"
 
 echo "Preparing app service ..."
 
-sed -i -e 's/few/asd/g' "${SCRIPT_DIR}/app.service"
+sed -i -e "s#{directory}#$SCRIPT_DIR#g" "${SCRIPT_DIR}/app.service"
 
 echo "Copying service ..."
 #: [sudo]

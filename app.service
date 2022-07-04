@@ -3,7 +3,7 @@ Description=Telegram Security Bot
 After=network.target
 
 [Service]
-ExecStart={directory}/venv/bin/python3.9 {directory}/app.py
+ExecStart={directory}/venv/bin/python3 {directory}/app.py
 
 [Install]
 WantedBy=multi-user.target
