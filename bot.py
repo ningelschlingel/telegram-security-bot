@@ -187,21 +187,7 @@ class SurveillanceBot():
             return
         ###########################
 
-        keyboard = [
-            [
-                InlineKeyboardButton("Option 1", callback_data="1"),
-                InlineKeyboardButton("Option 2", callback_data="2"),
-                InlineKeyboardButton("Option 3", callback_data="3"),
-                InlineKeyboardButton("Option 4", callback_data="4"),
-            ],
-            [
-                InlineKeyboardButton("Option 5", callback_data="5"),
-                InlineKeyboardButton("Option 6", callback_data="6"),
-                InlineKeyboardButton("Option 7", callback_data="7"),
-                InlineKeyboardButton("Option 8", callback_data="8"),
-                InlineKeyboardButton("Option 9", callback_data="9"),
-            ],
-        ]
+        keyboard = [[InlineKeyboardButton(str(i*2), callback_data=str(i*2)), InlineKeyboardButton(str(i*2+1), callback_data=str(i*2+1))] for i in range(30)]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
