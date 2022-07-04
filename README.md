@@ -154,10 +154,16 @@ Usually a token is only valid for one day, so register promptly.
 
 Example: `/activate HG3TL4NZE9M7`
 
+### Show users
 
+Use the `/users` command to get a list of all registered users.
 
-As the owner, you will get every information.
-When movement is detected, you will be notified with a textmessage and shortly after you will receive the recorded video.
+```
+/users *MOD_ROLE
+```
+
+Example: `/users`
+
 
 ### Generate token
 
@@ -165,7 +171,7 @@ Use the `/token` command to generate new tokens.
 This is the only way to give other users access to the surveillance.
 
 ```
-/token <ROLE_OPTION:['-a', '-m', '-s']> <?DAYS_VALID:INTEGER> *MOD_ROLE
+/token <ROLE_OPTION:['-a', '-m', '-s']> <?DAYS_VALID:INTEGER> *ADMIN_ROLE
 ```
 
 Make sure to provide the required role option: `-a` for admin, `-m` for mod, `-s` for subscribers. 
@@ -175,13 +181,25 @@ Take a look into the [role table](#roles) for a rough feature overview.
 
 Example: `/token -a 3`
 
+
+### Clear all users
+
+Use the `/clear` command to clear all registered users and currently pending tokens.
+
+```
+/clear *OWNER_ROLE
+```
+
+Example: `/clear`
+
+
 ## Roles
 
 role level | role name   | role          | features                                                                    | create option
 -----------| ------------| ------------- |-----------------------------------------------------------------------------|---------------
-4          | OWNER_ROLE  | owner         | text & video notifications, create new tokens (-a, -m, -s) , managing users | 
-3          | ADMIN_ROLE  | admin         | text & video notifications, create new tokens (-m, -s) , managing users     | -a
-2          | MOD_ROLE    | mod           | text notifications, create new tokens (-s)                                  | -m
+4          | OWNER_ROLE  | owner         | text & video notifications, create new tokens (-a, -m, -s) , manage users   | 
+3          | ADMIN_ROLE  | admin         | text & video notifications, create new tokens (-m, -s) , manage users       | -a
+2          | MOD_ROLE    | mod           | text notifications, manage users                                            | -m
 1          | SUB_ROLE    | subscriber    | text notifications                                                          | -s
 0          | OPEN_ROLE   |               | activate token                                                              | 
 
