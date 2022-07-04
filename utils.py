@@ -23,3 +23,5 @@ if __name__ == '__main__':
     #shell_cmd(convert + '; ' + delete)
     #print(timestring())
     print(basename('/ajksdf/aksjfdh/jkasdfhiuva///askjdfh/82343789345u&%%/(5/file.txt/'))
+
+    print('\n'.join(['a', 'b', 'c']))

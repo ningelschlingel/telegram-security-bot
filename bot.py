@@ -30,6 +30,10 @@ class SurveillanceBot():
         #: Register token-command-handler
         admin_create_token_command_handler = CommandHandler('token', self.admin_create_token_command_callback)
         self.dispatcher.add_handler(admin_create_token_command_handler)
+
+        #: Register cleartokens-command-handler
+        admin_clear_tokens_command_handler = CommandHandler('cleartokens', self.admin_clear_tokens_command_callback)
+        self.dispatcher.add_handler(admin_clear_tokens_command_handler)
         
         #: Register clear-command-handler
         owner_clear_all_users_and_admins_command_handler = CommandHandler('clear', self.owner_clear_all_users_and_admins_command_callback)
@@ -64,7 +68,7 @@ class SurveillanceBot():
         chat_id = update.effective_chat.id
         
         ### Check authorization ###
-        authorization_level = cfg.ROLE_RANKING[cfg.OPEN_ROLE]
+        authorization_level = cfg.ROLE_TO_RANK[cfg.OPEN_ROLE]
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
@@ -84,11 +88,11 @@ class SurveillanceBot():
             self.users[chat_id] = user
             
             #: add as admin if token allows
-            if cfg.ROLE_RANKING[token.role] >= cfg.ROLE_RANKING[cfg.ADMIN_ROLE]:
+            if token.role >= cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]:
                 self.admins[chat_id] = user
             
             #: inform user
-            self._send_text_msg(chat_id, text='Subscribed!')         
+            self._send_text_msg(chat_id, text='Registered as {}!'.format(cfg.ROLES[cfg.RANK_TO_ROLE[token.role]]))
 
     def mod_show_users_with_roles_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /users command - ADMIN
@@ -99,14 +103,14 @@ class SurveillanceBot():
         chat_id = update.effective_chat.id
         
         ### Check authorization ###
-        authorization_level = cfg.ROLE_RANKING[cfg.MOD_ROLE]
+        authorization_level = cfg.ROLE_TO_RANK[cfg.MOD_ROLE]
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
         ###########################
         
         if update.effective_chat.id in self.admins:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='List of users ...')
+            context.bot.send_message(chat_id=update.effective_chat.id, text=self._get_all_users_as_text())
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Unauthorized!')
             
@@ -117,12 +121,12 @@ class SurveillanceBot():
             
             #: -a admin-token
             #: -m mod-token
-            #: -u user-token (default)
+            #: -s user-token
         '''
         chat_id = update.effective_chat.id
         
         ### Check authorization ###
-        authorization_level = cfg.ROLE_RANKING[cfg.ADMIN_ROLE]
+        authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
@@ -134,7 +138,7 @@ class SurveillanceBot():
         
         role = cfg.TOKEN_OPTIONS[context.args[0]]
         
-        if not cfg.ROLE_RANKING[self.users[chat_id].role] > cfg.ROLE_RANKING[role]:
+        if not self.users[chat_id].role > role:
             self._send_text_msg(chat_id, 'You can only generate tokens for roles lower than your own.')
             return
         
@@ -142,21 +146,36 @@ class SurveillanceBot():
             self._send_text_msg(chat_id, 'If you want to provide a period of validity, please use numeric values only. Default is 1 day.')
             return
         
-        role = cfg.TOKEN_OPTIONS[context.args[0]]
         token = Token(role, context.args[1] if len(context.args) > 1 else 1)
         self.tokens[token.value] = token
         
-        self._send_text_msg(chat_id, 'Newly created {role} token: {token}'.format(role = role, token = token.value))
+        self._send_text_msg(chat_id, 'Newly created {role} token: {token}'.format(role = cfg.ROLES[cfg.RANK_TO_ROLE[role]], token = token.value))
+
+    def admin_clear_tokens_command_callback(self, update: Update, context: CallbackContext) -> None:
+        ''' Callback for the /cleartokens command - ADMIN
+        '''
+
+        chat_id = update.effective_chat.id
+        
+        ### Check authorization ###
+        authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
+        if not self._is_authorized(chat_id, authorization_level):
+            self._send_text_msg(chat_id, 'Unauthorized!')
+            return
+        ###########################
+
+        self.tokens.clear()
     
     def owner_clear_all_users_and_admins_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - OWNER
 
             Clears all users and admins except the owner
         '''
+
         chat_id = update.effective_chat.id
         
         ### Check authorization ###
-        authorization_level = cfg.ROLE_RANKING[cfg.OWNER_ROLE]
+        authorization_level = cfg.ROLE_TO_RANK[cfg.OWNER_ROLE]
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
@@ -204,7 +223,7 @@ class SurveillanceBot():
             return False
         
         #: Command authorization level must be open, or the user has to be registered and own the required access rights
-        return command_authorization_level == cfg.ROLE_RANKING[cfg.OPEN_ROLE] or (chat_id in self.users and cfg.ROLE_RANKING[self.users[chat_id].role] >= command_authorization_level)
+        return command_authorization_level == cfg.ROLE_TO_RANK[cfg.OPEN_ROLE] or (chat_id in self.users and cfg.ROLE_TO_RANK[self.users[chat_id].role] >= command_authorization_level)
     
     def _clean_tokens(self) -> None:
         ''' Cleans token dict from expired tokens
@@ -231,5 +250,10 @@ class SurveillanceBot():
             #: text     - message text
         '''
         self.updater.bot.send_message(chat_id=chat_id, text=text)
+
+    def _get_all_users_as_text(self) -> str:
+
+        lst = ['ID: {} - Username: {} - Role: {}'.format(u.chat_id, u.name, cfg.RANK_TO_ROLE[u.role]) for u in self.users]
+        return '\n'.join(lst)
         
     

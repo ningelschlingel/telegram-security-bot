@@ -6,7 +6,7 @@ import config as cfg
 @dataclass
 class Token():
 
-    role: str
+    role: int
     valid_for: InitVar[int]
     valid_until: datetime = field(init=False)
     value: str = field(init=False)

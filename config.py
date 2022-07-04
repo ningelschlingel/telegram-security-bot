@@ -21,20 +21,22 @@ OPEN_ROLE='OPEN_ROLE'
 
 REQUEST_TOKENS_ENABLED=False
 
-TOKEN_OPTIONS = {
-    '-a': ADMIN_ROLE,
-    '-m': MOD_ROLE,
-    '-s': SUB_ROLE
-}
-
 TOKEN_LENGTH=12
 
-ROLE_RANKING = {
+ROLE_TO_RANK = {
     OWNER_ROLE: 4,
     ADMIN_ROLE: 3,
     MOD_ROLE: 2,
     SUB_ROLE: 1,
     OPEN_ROLE: 0
+}
+
+RANK_TO_ROLE = {
+    4: OWNER_ROLE,
+    3: ADMIN_ROLE,
+    2: MOD_ROLE,
+    1: SUB_ROLE,
+    0: OPEN_ROLE
 }
 
 ROLES = {
@@ -43,5 +45,11 @@ ROLES = {
     MOD_ROLE: 'mod',
     SUB_ROLE: 'sub',
     OPEN_ROLE: 'open'
+}
+
+TOKEN_OPTIONS = {
+    '-a': ROLE_TO_RANK[ADMIN_ROLE],
+    '-m': ROLE_TO_RANK[MOD_ROLE],
+    '-s': ROLE_TO_RANK[SUB_ROLE]
 }
 
