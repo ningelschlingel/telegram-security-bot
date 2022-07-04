@@ -1,6 +1,6 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CallbackContext, CommandHandler
+from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler
 
 import utils
 import config as cfg
@@ -38,10 +38,16 @@ class SurveillanceBot():
         #: Register ban-command-handler
         admin_ban_user_command_handler = CommandHandler('ban', self.admin_ban_user_command_callback)
         self.dispatcher.add_handler(admin_ban_user_command_handler)
+
+        #: Register unban-command-handler
+        admin_unban_user_command_handler = CommandHandler('unban', self.admin_unban_user_command_callback)
+        self.dispatcher.add_handler(admin_unban_user_command_handler)
         
         #: Register clear-command-handler
         owner_clear_all_users_and_admins_command_handler = CommandHandler('clear', self.owner_clear_all_users_and_admins_command_callback)
         self.dispatcher.add_handler(owner_clear_all_users_and_admins_command_handler)
+
+        self.dispatcher.add_handler(CallbackQueryHandler(self.button))
         
         #: Init users and admin dict
         self.users = {}
@@ -187,11 +193,30 @@ class SurveillanceBot():
             return
         ###########################
 
-        keyboard = [[InlineKeyboardButton(str(i*2), callback_data=str(i*2)), InlineKeyboardButton(str(i*2+1), callback_data=str(i*2+1))] for i in range(30)]
+        keyboard = [[InlineKeyboardButton(str(i*2), callback_data=str(i*2)), InlineKeyboardButton(str(i*2+1), callback_data=str(i*2+1))] for i in range(10)]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        update.message.reply_text("Please choose:", reply_markup=reply_markup)
+        update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
+
+    def admin_ban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
+        '''
+        '''
+
+        chat_id = update.effective_chat.id
+        
+        ### Check authorization ###
+        authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
+        if not self._is_authorized(chat_id, authorization_level):
+            self._send_text_msg(chat_id, 'Unauthorized!')
+            return
+        ###########################
+
+        keyboard = [[InlineKeyboardButton(str(i*2), callback_data=str(i*2)), InlineKeyboardButton(str(i*2+1), callback_data=str(i*2+1))] for i in range(3)]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
         
     def owner_clear_all_users_and_admins_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - OWNER
@@ -218,6 +243,19 @@ class SurveillanceBot():
         self.users.clear()
         self.admins[chat_id] = owner
         self.users[chat_id] = owner
+
+
+    def button(update: Update, context: CallbackContext) -> None:
+        """Parses the CallbackQuery and updates the message text."""
+        query = update.callback_query
+
+        print("QUERY", query)
+
+        # CallbackQueries need to be answered, even if no notification to the user is needed
+        # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+        query.answer()
+
+        query.edit_message_text(text=f"Selected option: {query.data}")
 
     
     def alert(self) -> None:
