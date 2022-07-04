@@ -264,7 +264,7 @@ class SurveillanceBot():
             return False
         
         #: Command authorization level must be open, or the user has to be registered and own the required access rights
-        return command_authorization_level == cfg.ROLE_TO_RANK[cfg.OPEN_ROLE] or (chat_id in self.users and cfg.ROLE_TO_RANK[self.users[chat_id].role] >= command_authorization_level)
+        return command_authorization_level == cfg.ROLE_TO_RANK[cfg.OPEN_ROLE] or (chat_id in self.users and self.users[chat_id].role >= command_authorization_level)
     
     def _clean_tokens(self) -> None:
         ''' Cleans token dict from expired tokens
