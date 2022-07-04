@@ -18,8 +18,8 @@ def basename(path) -> str:
     return os.path.basename(os.path.normpath(path))
     
 if __name__ == '__main__':
-    #convert = 'MP4Box -add {before} {after}'.format(before = 'O8Y0MVGS6L85WZ.h264', after = 'videos/HURENSOHN.mp4')
-    #delete = 'rm ' + 'asdfasdf.h264 O8Y0MVGS6L85WZ.h264'
+    #convert = 'MP4Box -add {before} {after}'.format(before = 'video.h264', after = 'videos/video.mp4')
+    #delete = 'rm ' + 'video.h264'
     #shell_cmd(convert + '; ' + delete)
     #print(timestring())
-    print(basename('/ajksdf/aksjfdh/jkasdfhiuva///askjdfh/82343789345u&%%/(5/datei.pdf/'))
+    print(basename('/ajksdf/aksjfdh/jkasdfhiuva///askjdfh/82343789345u&%%/(5/file.txt/'))
