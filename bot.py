@@ -165,11 +165,14 @@ class SurveillanceBot():
         owner = self.users.pop(chat_id)
         
         self._send_text_msg_to_lst(self.users, 'Your subscription was terminated.')
+
+        self.tokens.clear()
         
         self.admins.clear()
         self.users.clear()
         self.admins[chat_id] = owner
         self.users[chat_id] = owner
+
     
     def alert(self) -> None:
         ''' Method to inform all subscribers when motion was detected.
