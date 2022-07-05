@@ -1,4 +1,4 @@
-# telegram-security-bot
+# Telegram Security Bot
 Motion activated surveillance videos via telegram
 
 - [Introduction](#introduction)
@@ -151,6 +151,10 @@ Now that your bot is up and runnning, you should register yourself as the owner 
 To understand the following list of commands, take a look at this example.
 The first section is the name of the command. This is, what the set up handlers respond to.  
 
+```
+/command <PARAM_NAME:[<VALUE1>, <VALUE2>]> <?OPTIONAL_PARAM_NAME:DATATYPE> *ROLE
+```
+
 Some commands require additional parameters to funciton properly.
 There are required params like `<PARAM_NAME:[<VALUE1>, <VALUE2>]>` and optional params like `<?OPTIONAL_PARAM_NAME:DATATYPE>`.
 In both cases, the param has additional information about which values are accepted.
@@ -158,10 +162,6 @@ This can either be a datatype like `STRING` or `INTEGER`, or a list of specific 
 
 Furthermore, the `*ROLE` value indicates which role is required at least to use the command.
 
-
-```
-/command <PARAM_NAME:[<VALUE1>, <VALUE2>]> <?OPTIONAL_PARAM_NAME:DATATYPE> *ROLE
-```
 ---
 
 #### Activate token
@@ -173,7 +173,22 @@ The token determines your authorizations.
 /activate <TOKEN:STRING> *OPEN_ROLE
 ```
 
-Usually a token is only valid for one day, so register promptly.
+Usually a token is only valid for one day, so register promptly after receiving one.
+
+Example: `/activate HG3TL4NZE9M7`
+
+---
+
+#### Leave
+
+Use the `/leave` command to unsubscribe. As the owner, you cant leave.
+If you change your mind, you will need a new activation token.
+
+```
+/leave
+```
+
+Usually a token is only valid for one day, so register promptly after receiving one.
 
 Example: `/activate HG3TL4NZE9M7`
 
@@ -197,15 +212,86 @@ Use the `/token` command to generate new tokens.
 This is the only way to give other users access to the surveillance.
 
 ```
-/token <ROLE_OPTION:['-a', '-m', '-s']> <?DAYS_VALID:INTEGER> *ADMIN_ROLE
+/token <ROLE_OPTION> *ADMIN_ROLE
 ```
 
-Make sure to provide the required role option: `-a` for admin, `-m` for mod, `-s` for subscribers. 
-Per default, every token is only valid for one day. You can pass the optional `DAYS_VALID` parameter to increase the time of validity.
+This request will yields a two-step query to determine the role and validity period.
 You can only create tokens for roles that have less authority than your own.
 Take a look into the [role table](#roles) for a rough feature overview.
 
-Example: `/token -a 3`
+Example: `/token`
+
+---
+
+#### Clear tokens
+
+Use the `/cleartokens` command to remove all pending tokens.
+
+```
+/cleartokens *ADMIN_ROLE
+```
+
+Currently this is the only option of invalidating tokens.
+
+Example: `/cleartokens`
+
+---
+
+#### Pause surveillance
+
+Use the `/pause` command to pause the motion activated surveillance.
+
+```
+/pause *ADMIN_ROLE
+```
+
+If at the moment of pausing the camera is active, the recording will continue and you will receive it as usual.
+
+Example: `/pause`
+
+---
+
+#### Unpause surveillance
+
+Use the `/unpause` command to unpause motion activated surveillance..
+
+```
+/unpause *ADMIN_ROLE
+```
+
+If at the moment of unpausing a previously detected motion is still ongoing, this will not trigger a new recording. Only after the motion stopped the surveillance is active again.
+
+Example: `/unpause`
+
+---
+
+#### Ban user
+
+Use the `/ban` command to ban an active user.
+
+```
+/ban *ADMIN_ROLE
+```
+
+This will yield a query in which you can select the user to be banned.
+Only users with less powerful roles are shown.
+
+Example: `/ban`
+
+---
+
+#### Unban user
+
+Use the `/unban` command to unban an banned user.
+
+```
+/ban *ADMIN_ROLE
+```
+
+This will yield a query in which you can select the user to be unbanned.
+Only users with less powerful roles are shown.
+
+Example: `/unban`
 
 ---
 
@@ -223,12 +309,12 @@ Example: `/clear`
 
 ### Roles
 
-role level | role name   | role          | features                                                                    | create option
------------| ------------| ------------- |-----------------------------------------------------------------------------|---------------
-4          | OWNER_ROLE  | owner         | text & video notifications, create new tokens (-a, -m, -s) , manage users   | 
-3          | ADMIN_ROLE  | admin         | text & video notifications, create new tokens (-m, -s) , manage users       | -a
-2          | MOD_ROLE    | mod           | text notifications, manage users                                            | -m
-1          | SUB_ROLE    | subscriber    | text notifications                                                          | -s
-0          | OPEN_ROLE   |               | activate token                                                              | 
+role level | role name   | role          | features                                                                   
+-----------| ------------| ------------- |-----------------------------------------------------------------------------
+4          | OWNER_ROLE  | owner         | text & video notifications, create new tokens (-a, -m, -s) , manage users  
+3          | ADMIN_ROLE  | admin         | text & video notifications, create new tokens (-m, -s) , manage users      
+2          | MOD_ROLE    | mod           | text notifications, manage users                                           
+1          | SUB_ROLE    | subscriber    | text notifications                                                         
+0          | OPEN_ROLE   |               | activate token                                                            
 
 
