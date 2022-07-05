@@ -141,7 +141,11 @@ class SurveillanceBot():
         chat_id = update.effective_chat.id
         query = update.callback_query
 
-        self.logger.warn(query)
+        self.logger.warn("NOW ENTERING QUERY LOGGING")
+
+        self.logger.warn(str(query))
+
+        self.logger.warn("... QUERY LOGGING DONE")
         
         ### Check authorization ###
         authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
@@ -283,7 +287,7 @@ class SurveillanceBot():
             return
 
         #: delegate query data to filed handler method
-        self.context.bot_data[query.message.message_id].callback(update, context)
+        context.bot_data[query.message.message_id].callback(update, context)
 
         #query.edit_message_text(text=f"Selected option: {query.data}")
 
