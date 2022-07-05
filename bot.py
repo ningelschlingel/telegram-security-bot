@@ -232,6 +232,8 @@ class SurveillanceBot():
 
         message = update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
 
+        print("MESSAGE_ID:", message.message_id)
+
         payload = {
             message.message_id: self.unban
         }
@@ -267,6 +269,8 @@ class SurveillanceBot():
     def button(self, update: Update, context: CallbackContext) -> None:
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
+
+        print("MESSAGE_ID:", update.message.message_id, "bot_data:", context.bot_data)
 
         print("context", query)
 
