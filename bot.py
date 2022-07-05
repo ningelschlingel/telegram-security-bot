@@ -152,6 +152,8 @@ class SurveillanceBot():
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         message = update.message.reply_text("Choose the authority level for the token:", reply_markup=reply_markup)
+
+        self.logger.warn("MESSAGE_ID:", message.message_id)
         
         payload = { message.message_id: self.create_token_choose_days_of_validity }
         context.bot_data.update(payload)
@@ -232,7 +234,6 @@ class SurveillanceBot():
 
         message = update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
 
-        self.logger.warn("MESSAGE_ID:", message.message_id)
 
         payload = {
             message.message_id: self.unban
@@ -270,9 +271,9 @@ class SurveillanceBot():
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
 
-        self.logger.warn("update: " + update + "  bot_data: " + context.bot_data)
+        self.logger.warn("update: " + str(update) + "  bot_data: " + str(context.bot_data))
 
-        self.logger.warn("context " + query)
+        self.logger.warn("context " + str(query))
 
         # CallbackQueries need to be answered, even if no notification to the user is needed
         # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
