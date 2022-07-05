@@ -271,9 +271,7 @@ class SurveillanceBot():
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
 
-        self.logger.warn("update: " + str(update) + "  bot_data: " + str(context.bot_data))
-
-        self.logger.warn("context " + str(query))
+        self.logger.warn("Update Message Id: " + str(query.message.message_id) + "  bot_data keys: " + str(context.bot_data.keys()))
 
         # CallbackQueries need to be answered, even if no notification to the user is needed
         # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
