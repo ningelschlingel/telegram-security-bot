@@ -1,5 +1,6 @@
 import string
 import logging
+from time import strftime
 from typing import Callable
 from telegram import Message, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler
@@ -236,7 +237,8 @@ class SurveillanceBot:
                 self.logger.debug('New {} token created'.format(cfg.RANK_TO_ROLE[t.role]))
                 
                 #: inform user with new token
-                query.edit_message_text('New {} token is valid until: {}'.format(cfg.ROLES[cfg.RANK_TO_ROLE[t.role]], t.valid_until))
+                query.edit_message_text('{} token is valid until {}'.format(cfg.ROLES[cfg.RANK_TO_ROLE[t.role]].capitalize(), t.valid_until.strftime('%y/%m/%d, %H:%M')))
+                update.message.reply_text(t.value)
                 
                 #: remove payload from context
                 del context.bot_data[query.message.message_id]
