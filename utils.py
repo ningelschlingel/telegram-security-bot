@@ -6,8 +6,8 @@ import logging
 import subprocess
 from typing import Callable
 
-def randomstr(length=8) -> str:
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k = length))
+def randomstr(length=8, charset=string.ascii_uppercase + string.digits) -> str:
+    return ''.join(random.choices(charset, k = length))
 
 def shell_cmd(cmd) -> None:
     subprocess.call(cmd, shell=True, stdout=subprocess.DEVNULL)
@@ -25,12 +25,4 @@ if __name__ == '__main__':
     #print(timestring())
     print(basename('/ajksdf/aksjfdh/jkasdfhiuva///askjdfh/82343789345u&%%/(5/file.txt/'))
 
-    a = [1, 2, 3, 4, 5]
-    
-    b = [5]
-    
-    c = 4
-    
-    d = [x for x in a if x != c and x not in b]
-    
-    print(d)
+    print(randomstr(10, string.digits))

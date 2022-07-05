@@ -1,3 +1,4 @@
+import string
 import logging
 from typing import Callable
 from telegram import Message, Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -50,7 +51,7 @@ class SurveillanceBot:
         self.dispatcher.add_handler(admin_pause_command_handler)
         
         #: Register unpause-command-handler
-        admin_unpause_command_handler = CommandHandler('pause', self.admin_unpause_command_callback)
+        admin_unpause_command_handler = CommandHandler('unpause', self.admin_unpause_command_callback)
         self.dispatcher.add_handler(admin_unpause_command_handler)
 
         #: Register ban-command-handler
@@ -70,6 +71,11 @@ class SurveillanceBot:
         #: Init users and admin dict
         self.users = {}
         self.banned = {}
+        
+        #TODO remove test users
+        for i in range(4):
+            user = User(utils.randomstr(10, string.digits), utils.randomstr(8, string.ascii_lowercase), 1)
+            self.users[user.chat_id] = user
         
         self.tokens = {}
         
@@ -301,35 +307,12 @@ class SurveillanceBot:
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
         
-        #: Start process
-        if not query:
-            
-            #: get role of current user
-            role = self.users[chat_id].role
+        if not [i for i in self.users.keys() if i != chat_id]:
+            self._send_text_msg(chat_id, 'There is no user you could ban.')
+            return
         
-            #: build ban-user option keyboard
-            keyboard = [InlineKeyboardButton(user.name, callback_data=user.chat_id) for user in self.users if user.role < role]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            #: send query
-            message = update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
-            
-            self._add_query_payload(message, context, self.admin_ban_user_command_callback)
-            
-        #: If query exists, handle user selection
-        else:
-            
-            if query.data not in self.users:
-                return #TODO user not found, maybe unsubscribed on his own
-            
-            user_to_ban = self.users.pop(query.data)
-            self.banned[user_to_ban] = user_to_ban
-            
-            #: inform user with new token
-            query.edit_message_text('{} was banned.'.format(user_to_ban.name))
-            
-            #: remove payload from context
-            del context.bot_data[query.message.message_id]
+        self._admin_ban_unban_user_helper(update, context, self.admin_ban_user_command_callback, self.users, self.banned, 'banned')
+        
 
     def admin_unban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
         '''
@@ -343,9 +326,12 @@ class SurveillanceBot:
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
 
-        self._admin_ban_unban_user_helper(update, context, self.banned, self.users)
+        self._admin_ban_unban_user_helper(update, context, self.admin_unban_user_command_callback, self.banned, self.users, 'unbanned')
 
-    def _admin_ban_unban_user_helper(self, update: Update, context: CallbackContext, from_dict: dict, to_dict: dict):
+    def _admin_ban_unban_user_helper(self, update: Update, context: CallbackContext, callback: Callable, from_dict: dict, to_dict: dict, action_name: str):
+        
+        chat_id = update.effective_chat.id
+        query = update.callback_query
         
         #: Start process
         if not query:
@@ -354,25 +340,29 @@ class SurveillanceBot:
             role = self.users[chat_id].role
         
             #: build ban-unban-user option keyboard
-            keyboard = [InlineKeyboardButton(user.name, callback_data=user.chat_id) for user in from_dict if user.role < role]
+            keyboard = [[InlineKeyboardButton(user.name, callback_data=user.chat_id)] for user in from_dict.values() if user.role < role]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
             #: send query
-            message = update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
+            message = update.message.reply_text("Select the user to be {}:".format(action_name), reply_markup=reply_markup)
             
-            self._add_query_payload(message, context, self.admin_ban_user_command_callback)
+            self._add_query_payload(message, context, callback)
             
         #: If query exists, handle user selection
         else:
             
-            if query.data not in self.users:
-                return #TODO user not found, maybe unsubscribed on his own
+            self.logger.warn("User to be moved")
+            
+            if query.data not in from_dict:
+                return #TODO user not found
             
             user_to_move = from_dict.pop(query.data)
-            to_dict[user_to_ban] = user_to_ban
+            to_dict[user_to_move.chat_id] = user_to_move
+            
+            self.logger.warn("User moved")
             
             #: inform user with new token
-            query.edit_message_text('{} was banned.'.format(user_to_ban.name))
+            query.edit_message_text('{} was {}.'.format(user_to_move.name, action_name))
             
             #: remove payload from context
             del context.bot_data[query.message.message_id]
@@ -423,11 +413,11 @@ class SurveillanceBot:
         context.bot_data[message_id].callback(update, context)
 
     
-    def alert(self, msg: str) -> None:
-        ''' Method to inform all subscribers with custom message
+    def alert(self, msg: str, role_level = 0) -> None:
+        ''' Method to inform specified user group with custom message
         '''
         
-        self._send_text_msg_to_lst(self.users, msg)
+        self._send_text_msg_to_lst({k: v for k, v in self.users.items() if v.role >= role_level }, msg)
         
     def send_surveillance_video(self, video_path: str) -> None:
         ''' Sends the recorded surveillance video to every admin-user

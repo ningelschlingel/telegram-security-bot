@@ -2,9 +2,9 @@ import time
 import string
 import logging
 from threading import Thread
-from camera import Camera
 
 import config as cfg
+from camera import Camera
 from rcwl_0516 import RCWL_0516
 from bot import SurveillanceBot
 
@@ -29,7 +29,7 @@ class Controller():
         #: Init logger
         self.logger = logging.getLogger(__name__)
         
-        self.surveillance_paused = False #TODO allow pausing the surveillance
+        self.surveillance_paused = True
         self.no_detection_timeframe_start = None #TODO allow to set starttime of a no-detection timeframe
         self.no_detection_timeframe_end = None #TODO allow to set endtime of a no-detection timeframe
         
@@ -41,6 +41,7 @@ class Controller():
         
         #: save if the state is about to change
         did_change = pause_surveillance != self.surveillance_paused
+        
         #: set anyways
         self.surveillance_paused = pause_surveillance
         
@@ -52,13 +53,12 @@ class Controller():
         '''
         '''
         
-        if self.surveillance_paused:
-            return
-        
-        #:
+        #: If motion sensor registered movement ...
         if is_motion_start:
             self.motion_active = True
-            if not self.camera.is_recording:
+            
+            #: ... and camera is not yet recording and survaillance is not paused - start recording
+            if not self.camera.is_recording and not self.surveillance_paused:
                 self._start_recording()
         else:
             self.motion_active = False
@@ -72,7 +72,7 @@ class Controller():
         
         self.camera.start_recording()
         self.logger.debug('Started recording')
-        self.bot.alert('Motion detected, recording started!')
+        self.bot.alert('Motion detected, recording started!', 3)
         self.timer_thread = Thread(target = self._timer)
         self.timer_thread.start()
         
@@ -108,10 +108,13 @@ class Controller():
                 self._stop_recording()
                 return
         
-        #: If the recording oulasts the max lenght, stop and start new recording
+        #: If the recording oulasts the max lenght, stop
         if self.camera.is_recording:
             video = self.camera.stop_recording()
             self.bot.send_surveillance_video(video)
-            self._start_recording()
+            
+            #: Start new recording only if surveillance is not paused
+            if not self.surveillance_paused:
+                self._start_recording()
             
         
