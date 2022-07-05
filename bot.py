@@ -4,6 +4,7 @@ from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQuery
 
 import utils
 import config as cfg
+#from userservice import UserService
 from user import User
 from usertoken import Token
 
@@ -145,7 +146,18 @@ class SurveillanceBot():
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
         ###########################
+
+        keyboard = [[InlineKeyboardButton(cfg.ROLES[cfg.RANK_TO_ROLE[i]], callback_data=i),] for i in range(1, 4)]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        message = update.message.reply_text("Choose the authority level for the token:", reply_markup=reply_markup)
         
+        payload = { message.message_id: self.create_token_choose_days_of_validity }
+        context.bot_data.update(payload)
+
+        
+        '''
         if not context.args or context.args[0] not in cfg.TOKEN_OPTIONS:
             self._send_text_msg(chat_id, 'Please use one of the options: -a for admin, -m for mod, -s for subscriber.')
             return
@@ -164,6 +176,8 @@ class SurveillanceBot():
         self.tokens[token.value] = token
         
         self._send_text_msg(chat_id, 'Newly created {role} token: {token}'.format(role = cfg.ROLES[cfg.RANK_TO_ROLE[role]], token = token.value))
+        '''
+
 
     def admin_clear_tokens_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /cleartokens command - ADMIN
@@ -216,7 +230,12 @@ class SurveillanceBot():
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
+        message = update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
+
+        payload = {
+            message.message_id: self.unban
+        }
+        context.bot_data.update(payload)
         
     def owner_clear_all_users_and_admins_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - OWNER
@@ -249,7 +268,7 @@ class SurveillanceBot():
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
 
-        print("QUERY", query)
+        print("context", query)
 
         # CallbackQueries need to be answered, even if no notification to the user is needed
         # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
@@ -296,6 +315,29 @@ class SurveillanceBot():
         
         #: Remove expired tokens in dict comprehension filter
         self.tokens = { k:v for k,v in self.tokens.items() if v.is_valid() }
+
+    def create_token_choose_days_of_validity(self, update: Update, context: CallbackContext):
+
+        keyboard = [
+            [InlineKeyboardButton(1, callback_data=1), InlineKeyboardButton(3, callback_data=3)],
+            [InlineKeyboardButton(5, callback_data=5), InlineKeyboardButton(10, callback_data=10)]
+        ]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        update.message.reply_text("Choose days of validity:", reply_markup=reply_markup)
+
+    def _ban(self, chat_id) -> None:
+        ''' Bans user
+        '''
+        
+        print(" USER BANNED !!!!")
+
+    def _unban(self, chat_id) -> None:
+        ''' Cleans token dict from expired tokens
+        '''
+        
+        print(" USER UNBANNED !!!!")
     
     def _send_text_msg_to_lst(self, lst, text) -> None:
         ''' Sends message to list of chat_ids
