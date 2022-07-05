@@ -270,7 +270,7 @@ class SurveillanceBot():
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
 
-        print("MESSAGE_ID:", update.message.message_id, "bot_data:", context.bot_data)
+        print("update:", update, "bot_data:", context.bot_data)
 
         print("context", query)
 
