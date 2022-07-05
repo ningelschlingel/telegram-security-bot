@@ -23,3 +23,8 @@ if __name__ == '__main__':
     #shell_cmd(convert + '; ' + delete)
     #print(timestring())
     print(basename('/ajksdf/aksjfdh/jkasdfhiuva///askjdfh/82343789345u&%%/(5/file.txt/'))
+
+    def test():
+        print('a')
+
+    print(type(test))

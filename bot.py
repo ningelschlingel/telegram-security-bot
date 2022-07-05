@@ -1,5 +1,5 @@
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Message, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler
 
 import utils
@@ -139,6 +139,9 @@ class SurveillanceBot():
             #: -s user-token
         '''
         chat_id = update.effective_chat.id
+        query = update.callback_query
+
+        self.logger.warn(query)
         
         ### Check authorization ###
         authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
@@ -154,9 +157,8 @@ class SurveillanceBot():
         message = update.message.reply_text("Choose the authority level for the token:", reply_markup=reply_markup)
 
         self.logger.warn("MESSAGE_ID: " + str(message.message_id))
-        
-        payload = { message.message_id: self.create_token_choose_days_of_validity }
-        context.bot_data.update(payload)
+
+        self._add_query_payload(message, context, self.create_token_choose_days_of_validity, None, 1)
 
         
         '''
@@ -213,7 +215,9 @@ class SurveillanceBot():
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
+        message = update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
+
+        self._add_query_payload(message, context, "callback", None) #TODO add callback function
 
     def admin_unban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
         '''
@@ -234,11 +238,7 @@ class SurveillanceBot():
 
         message = update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
 
-
-        payload = {
-            message.message_id: self.unban
-        }
-        context.bot_data.update(payload)
+        self._add_query_payload(message, context, "callback", None)
         
     def owner_clear_all_users_and_admins_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - OWNER
@@ -270,6 +270,7 @@ class SurveillanceBot():
     def button(self, update: Update, context: CallbackContext) -> None:
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
+        message_id = query.message.message_id
 
         self.logger.warn("Update Message Id: " + str(query.message.message_id) + "  bot_data keys: " + str(context.bot_data.keys()))
 
@@ -277,7 +278,30 @@ class SurveillanceBot():
         # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
         query.answer()
 
-        query.edit_message_text(text=f"Selected option: {query.data}")
+        if message_id not in context.bot_data.keys():
+            #TODO handle error
+            return
+
+        #: delegate query data to filed handler method
+        self.context.bot_data[query.message.message_id].callback(update, context)
+
+        #query.edit_message_text(text=f"Selected option: {query.data}")
+
+    def create_token_choose_days_of_validity(self, update: Update, context: CallbackContext):
+
+        query = update.callback_query
+
+        keyboard = [
+            [InlineKeyboardButton(1, callback_data=1), InlineKeyboardButton(3, callback_data=3)],
+            [InlineKeyboardButton(5, callback_data=5), InlineKeyboardButton(10, callback_data=10)]
+        ]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        query.edit_message_text(text="Choose days of validity:")
+        query.edit_message_reply_markup(reply_markup=reply_markup)
+
+        update.message.reply_text("Choose days of validity:", reply_markup=reply_markup)
 
     
     def alert(self) -> None:
@@ -287,17 +311,30 @@ class SurveillanceBot():
         
         self._send_text_msg_to_lst(self.users, 'Movement detected!')
         
-    def send_surveillance_video(self, video) -> None:
+    def send_surveillance_video(self, video_path: str) -> None:
         ''' Sends the recorded surveillance video to every admin-user
         '''
         
-        if not video:
+        if not video_path:
             return
         
         #: Iterate admins and send video to each
         for admin in self.admins: 
-            self.updater.bot.send_video(chat_id=admin, video=open(video, 'rb'), supports_streaming=True,  caption=utils.basename(video))
+            self.updater.bot.send_video(chat_id=admin, video=open(video_path, 'rb'), supports_streaming=True,  caption=utils.basename(video_path))
     
+    def _add_query_payload(self, message: Message, context: CallbackContext, callback: function, data: object):
+
+        self.logger.warn(type(callback))
+
+        payload = {
+            message.message_id: {
+                'callback': callback,
+                'data': data
+            }
+        }
+
+        context.bot_data.update(payload)
+
     def _is_authorized(self, chat_id, command_authorization_level) -> bool:
         ''' Check if user with given chat_id is authorized for command
 
@@ -318,17 +355,6 @@ class SurveillanceBot():
         
         #: Remove expired tokens in dict comprehension filter
         self.tokens = { k:v for k,v in self.tokens.items() if v.is_valid() }
-
-    def create_token_choose_days_of_validity(self, update: Update, context: CallbackContext):
-
-        keyboard = [
-            [InlineKeyboardButton(1, callback_data=1), InlineKeyboardButton(3, callback_data=3)],
-            [InlineKeyboardButton(5, callback_data=5), InlineKeyboardButton(10, callback_data=10)]
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        update.message.reply_text("Choose days of validity:", reply_markup=reply_markup)
 
     def _ban(self, chat_id) -> None:
         ''' Bans user
