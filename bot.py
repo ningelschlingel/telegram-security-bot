@@ -178,7 +178,7 @@ class SurveillanceBot:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 payload.stage = 2
-                payload.data = { 'role', query.data }
+                payload.data = query.data
 
                 query.edit_message_text(text="Choose days of validity:")
                 query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -187,7 +187,7 @@ class SurveillanceBot:
 
             if payload.stage == 2:
 
-                t = Token(payload.data['role'], query.data)
+                t = Token(payload.data, query.data)
 
                 self.logger.debug('New {} token {} is valid until: {}'.format(cfg.RANK_TO_ROLE[t.role], t.value, t.valid_until))
                 query.edit_message_text('New {} token {} is valid until: {}'.format(cfg.RANK_TO_ROLE[t.role], t.value, t.valid_until))
