@@ -47,9 +47,11 @@ ROLES = {
     OPEN_ROLE: 'open'
 }
 
+'''
 TOKEN_OPTIONS = {
     '-a': ROLE_TO_RANK[ADMIN_ROLE],
     '-m': ROLE_TO_RANK[MOD_ROLE],
     '-s': ROLE_TO_RANK[SUB_ROLE]
 }
+'''
 

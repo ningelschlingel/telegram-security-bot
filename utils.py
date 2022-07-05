@@ -25,10 +25,12 @@ if __name__ == '__main__':
     #print(timestring())
     print(basename('/ajksdf/aksjfdh/jkasdfhiuva///askjdfh/82343789345u&%%/(5/file.txt/'))
 
-    def t(a: Callable):
-        a()
-
-    def test():
-        print('something')
-
-    t(test)
+    a = [1, 2, 3, 4, 5]
+    
+    b = [5]
+    
+    c = 4
+    
+    d = [x for x in a if x != c and x not in b]
+    
+    print(d)

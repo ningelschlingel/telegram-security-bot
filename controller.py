@@ -1,4 +1,5 @@
 import time
+import string
 import logging
 from threading import Thread
 from camera import Camera
@@ -12,30 +13,45 @@ class Controller():
     def __init__(self):
         
         #: Init bot, camera and motion detector
-        self.bot = SurveillanceBot()
+        self.bot = SurveillanceBot(self.pause_unpause_callback)
         self.camera =  Camera()
-        self.rcwl = RCWL_0516(self.motion_state_change)
+        self.rcwl = RCWL_0516(self.motion_state_change_callback)
         
         #: Start detecting in dedicated thread
         self.detect_thread = Thread(target = self.rcwl.detect)
         self.detect_thread.start()
         
         self.motion_active = False
-
+        
         #: Logging setup
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s', level=logging.DEBUG)
         
         #: Init logger
         self.logger = logging.getLogger(__name__)
         
-        self.surveillance_paused = True # ATTENTION! no surveillance TODO TODO TODO
+        self.surveillance_paused = False #TODO allow pausing the surveillance
         self.no_detection_timeframe_start = None #TODO allow to set starttime of a no-detection timeframe
         self.no_detection_timeframe_end = None #TODO allow to set endtime of a no-detection timeframe
         
-    def motion_state_change(self, is_motion_start):
-        '''
-        '''
+    def pause_unpause_callback(self, pause_surveillance: bool) -> bool:
+        ''' Callback for telegram bot to inform about pausing and unpausing the surveillance
 
+            #: returns whether or not the state changed
+        '''
+        
+        #: save if the state is about to change
+        did_change = pause_surveillance != self.surveillance_paused
+        #: set anyways
+        self.surveillance_paused = pause_surveillance
+        
+        #: return wheter the update changed the state
+        return did_change
+        
+        
+    def motion_state_change_callback(self, is_motion_start):
+        '''
+        '''
+        
         if self.surveillance_paused:
             return
         
@@ -56,8 +72,7 @@ class Controller():
         
         self.camera.start_recording()
         self.logger.debug('Started recording')
-        self.bot.alert()
-        self.logger.debug('Started recording')
+        self.bot.alert('Motion detected, recording started!')
         self.timer_thread = Thread(target = self._timer)
         self.timer_thread.start()
         

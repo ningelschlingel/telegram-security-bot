@@ -4,7 +4,7 @@ from usertoken import Token
 
 @dataclass
 class User():
-    id: str
+    chat_id: str
     name: str
     role: int
     #activation_token: str

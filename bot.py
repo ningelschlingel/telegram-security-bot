@@ -12,7 +12,7 @@ from usertoken import Token
 
 class SurveillanceBot:
     
-    def __init__(self):
+    def __init__(self, pause_unpause_callback: Callable):
         ''' Inits and starts bot '''
         
         #: Setup updater and dispatcher
@@ -22,9 +22,16 @@ class SurveillanceBot:
         #: Init logger
         self.logger = logging.getLogger(__name__)
         
+        #: Save callback
+        self.pause_unpause_callback = pause_unpause_callback
+        
         #: Register activate-command-handler
         open_activate_command_handler = CommandHandler('activate', self.open_activate_command_callback)
         self.dispatcher.add_handler(open_activate_command_handler)
+        
+        #: Register leave-command-handler
+        open_leave_command_handler = CommandHandler('leave', self.open_leave_command_callback)
+        self.dispatcher.add_handler(open_leave_command_handler)
         
         #: Register user-command-handler
         mod_show_users_with_roles_command_handler = CommandHandler('users', self.mod_show_users_with_roles_command_callback)
@@ -37,6 +44,14 @@ class SurveillanceBot:
         #: Register cleartokens-command-handler
         admin_clear_tokens_command_handler = CommandHandler('cleartokens', self.admin_clear_tokens_command_callback)
         self.dispatcher.add_handler(admin_clear_tokens_command_handler)
+        
+        #: Register pause-command-handler
+        admin_pause_command_handler = CommandHandler('pause', self.admin_pause_command_callback)
+        self.dispatcher.add_handler(admin_pause_command_handler)
+        
+        #: Register unpause-command-handler
+        admin_unpause_command_handler = CommandHandler('pause', self.admin_unpause_command_callback)
+        self.dispatcher.add_handler(admin_unpause_command_handler)
 
         #: Register ban-command-handler
         admin_ban_user_command_handler = CommandHandler('ban', self.admin_ban_user_command_callback)
@@ -47,14 +62,13 @@ class SurveillanceBot:
         self.dispatcher.add_handler(admin_unban_user_command_handler)
         
         #: Register clear-command-handler
-        owner_clear_all_users_and_admins_command_handler = CommandHandler('clear', self.owner_clear_all_users_and_admins_command_callback)
-        self.dispatcher.add_handler(owner_clear_all_users_and_admins_command_handler)
+        owner_clear_all_command_handler = CommandHandler('clear', self.owner_clear_all_command_callback)
+        self.dispatcher.add_handler(owner_clear_all_command_handler)
 
         self.dispatcher.add_handler(CallbackQueryHandler(self.button))
         
         #: Init users and admin dict
         self.users = {}
-        self.admins = {}
         self.banned = {}
         
         self.tokens = {}
@@ -85,7 +99,6 @@ class SurveillanceBot:
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
-        ###########################
         
         #: Remove expired tokens
         self._clean_tokens()
@@ -104,12 +117,38 @@ class SurveillanceBot:
         user = User(chat_id, update.message.from_user.username, token.role)
         self.users[chat_id] = user
         
-        #: add as admin if token allows
-        if token.role >= cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]:
-            self.admins[chat_id] = user
-        
         #: inform user
-        self._send_text_msg(chat_id, text='Registered as {}!'.format(cfg.ROLES[cfg.RANK_TO_ROLE[token.role]]))
+        self._send_text_msg(chat_id, text='Registered succesfully as {}!'.format(cfg.ROLES[cfg.RANK_TO_ROLE[token.role]]))
+        
+    def open_leave_command_callback(self, update: Update, context: CallbackContext) -> None:
+        
+        chat_id = update.effective_chat.id
+        
+        ### Check authorization ###
+        authorization_level = cfg.ROLE_TO_RANK[cfg.OPEN_ROLE]
+        if not self._is_authorized(chat_id, authorization_level):
+            self._send_text_msg(chat_id, 'Unauthorized!')
+            return
+        
+        if self.users[chat_id].role == cfg.ROLE_TO_RANK[cfg.OWNER_ROLE]:
+            
+            #: inform user: owner cant leave
+            self._send_text_msg(chat_id, text='You cant leave as the owner.')
+            return
+        
+        if chat_id not in self.users:
+            
+            #: inform user: cannot leave if not registered
+            self._send_text_msg(chat_id, text='You are not registered.')
+        
+        else:
+            
+            #: remove user
+            del self.users[chat_id]
+            
+            #: inform user: left successfully
+            self._send_text_msg(chat_id, text='You are no longer registered.')
+            
 
     def mod_show_users_with_roles_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /users command - ADMIN
@@ -124,21 +163,14 @@ class SurveillanceBot:
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
-        ###########################
         
-        if update.effective_chat.id in self.admins:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=self._get_all_users_as_text())
-        else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Unauthorized!')
+        context.bot.send_message(chat_id=update.effective_chat.id, text=self._get_all_users_as_text())
             
     def admin_create_token_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /token command - ADMIN
-
-            Allows admins to create register-tokens.
+            Allows admins to create register-token
             
-            #: -a admin-token
-            #: -m mod-token
-            #: -s user-token
+            #: handles a multi stage query for token creation
         '''
 
         chat_id = update.effective_chat.id
@@ -149,12 +181,11 @@ class SurveillanceBot:
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
-        ###########################
 
         #: Start process
         if not query:
 
-            #: Build role option keyboard
+            #: build role option keyboard
             keyboard = [[InlineKeyboardButton(cfg.ROLES[cfg.RANK_TO_ROLE[i]], callback_data=i),] for i in range(1, 4)]
             reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -164,58 +195,51 @@ class SurveillanceBot:
             #: save payload
             self._add_query_payload(message, context, self.admin_create_token_command_callback, None, 1)
 
+        #: If query exists, handle user selection based on stage
         else:
-
+            
+            #: get payload regarding message
             payload: Payload = context.bot_data[query.message.message_id]
 
+            #: handle first user selection
             if payload.stage == 1:
-
+                
+                #: build days of validity option keyboard
                 keyboard = [
                     [InlineKeyboardButton(1, callback_data=1), InlineKeyboardButton(3, callback_data=3)],
                     [InlineKeyboardButton(5, callback_data=5), InlineKeyboardButton(10, callback_data=10)]
                 ]
-
                 reply_markup = InlineKeyboardMarkup(keyboard)
-
+                
+                #: update stage and save user seletion for later in payload data
                 payload.stage = 2
                 payload.data = query.data
 
+                #: update query with days of validity options
                 query.edit_message_text(text="Choose days of validity:")
                 query.edit_message_reply_markup(reply_markup=reply_markup)
+                
+                return
 
-                #self._add_query_payload(message, context, self.admin_create_token_command_callback, None, 2)
-
+            #: handle second user selection
             if payload.stage == 2:
+                
+                #: build token based on seletions
+                t = Token(int(payload.data), int(query.data))
 
-                t = Token(payload.data, query.data)
-
-                self.logger.debug('New {} token {} is valid until: {}'.format(cfg.RANK_TO_ROLE[t.role], t.value, t.valid_until))
-                query.edit_message_text('New {} token {} is valid until: {}'.format(cfg.RANK_TO_ROLE[t.role], t.value, t.valid_until))
-        
-        '''
-        if not context.args or context.args[0] not in cfg.TOKEN_OPTIONS:
-            self._send_text_msg(chat_id, 'Please use one of the options: -a for admin, -m for mod, -s for subscriber.')
-            return
-        
-        role = cfg.TOKEN_OPTIONS[context.args[0]]
-        
-        if not self.users[chat_id].role > role:
-            self._send_text_msg(chat_id, 'You can only generate tokens for roles lower than your own.')
-            return
-        
-        if len(context.args) > 1 and not context.args[1].isnumeric():
-            self._send_text_msg(chat_id, 'If you want to provide a period of validity, please use numeric values only. Default is 1 day.')
-            return
-        
-        token = Token(role, context.args[1] if len(context.args) > 1 else 1)
-        self.tokens[token.value] = token
-        
-        self._send_text_msg(chat_id, 'Newly created {role} token: {token}'.format(role = cfg.ROLES[cfg.RANK_TO_ROLE[role]], token = token.value))
-        '''
+                self.logger.debug('New {} token created'.format(cfg.RANK_TO_ROLE[t.role]))
+                
+                #: inform user with new token
+                query.edit_message_text('New {} token is valid until: {}'.format(cfg.ROLES[cfg.RANK_TO_ROLE[t.role]], t.valid_until))
+                
+                #: remove payload from context
+                del context.bot_data[query.message.message_id]
+                
+                return 
 
 
     def admin_clear_tokens_command_callback(self, update: Update, context: CallbackContext) -> None:
-        ''' Callback for the /cleartokens command - ADMIN
+        ''' Callback for the /clear command - ADMIN
         '''
 
         chat_id = update.effective_chat.id
@@ -225,9 +249,45 @@ class SurveillanceBot:
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
-        ###########################
 
         self.tokens.clear()
+        
+    def admin_pause_command_callback(self, update: Update, context: CallbackContext) -> None:
+        ''' Callback for the /pause command - ADMIN
+        '''
+
+        chat_id = update.effective_chat.id
+        
+        ### Check authorization ###
+        authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
+        if not self._is_authorized(chat_id, authorization_level):
+            self._send_text_msg(chat_id, 'Unauthorized!')
+            return
+
+        if self.pause_unpause_callback(True):
+            self._send_text_msg(chat_id, 'Surveillance deactivated.')
+            
+        else:
+            self._send_text_msg(chat_id, 'Surveillance already inactive.')
+        
+    def admin_unpause_command_callback(self, update: Update, context: CallbackContext) -> None:
+        ''' Callback for the /unpause command - ADMIN
+        '''
+
+        chat_id = update.effective_chat.id
+        
+        ### Check authorization ###
+        authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
+        if not self._is_authorized(chat_id, authorization_level):
+            self._send_text_msg(chat_id, 'Unauthorized!')
+            return
+
+        if self.pause_unpause_callback(False):
+            self._send_text_msg(chat_id, 'Surveillance activated.')
+            
+        else:
+            self._send_text_msg(chat_id, 'Surveillance already active.')
+        
 
     def admin_ban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
         '''
@@ -240,15 +300,36 @@ class SurveillanceBot:
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
-        ###########################
-
-        keyboard = [[InlineKeyboardButton(str(i*2), callback_data=str(i*2)), InlineKeyboardButton(str(i*2+1), callback_data=str(i*2+1))] for i in range(10)]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        message = update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
-
-        self._add_query_payload(message, context, "callback", None) #TODO add callback function
+        
+        #: Start process
+        if not query:
+            
+            #: get role of current user
+            role = self.users[chat_id].role
+        
+            #: build ban-user option keyboard
+            keyboard = [InlineKeyboardButton(user.name, callback_data=user.chat_id) for user in self.users if user.role < role]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            #: send query
+            message = update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
+            
+            self._add_query_payload(message, context, self.admin_ban_user_command_callback)
+            
+        #: If query exists, handle user selection
+        else:
+            
+            if query.data not in self.users:
+                return #TODO user not found, maybe unsubscribed on his own
+            
+            user_to_ban = self.users.pop(query.data)
+            self.banned[user_to_ban] = user_to_ban
+            
+            #: inform user with new token
+            query.edit_message_text('{} was banned.'.format(user_to_ban.name))
+            
+            #: remove payload from context
+            del context.bot_data[query.message.message_id]
 
     def admin_unban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
         '''
@@ -261,17 +342,43 @@ class SurveillanceBot:
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
-        ###########################
 
-        keyboard = [[InlineKeyboardButton(str(i*2), callback_data=str(i*2)), InlineKeyboardButton(str(i*2+1), callback_data=str(i*2+1))] for i in range(3)]
+        self._admin_ban_unban_user_helper(update, context, self.banned, self.users)
 
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        message = update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
-
-        self._add_query_payload(message, context, "callback", None)
+    def _admin_ban_unban_user_helper(self, update: Update, context: CallbackContext, from_dict: dict, to_dict: dict):
         
-    def owner_clear_all_users_and_admins_command_callback(self, update: Update, context: CallbackContext) -> None:
+        #: Start process
+        if not query:
+            
+            #: get role of current user
+            role = self.users[chat_id].role
+        
+            #: build ban-unban-user option keyboard
+            keyboard = [InlineKeyboardButton(user.name, callback_data=user.chat_id) for user in from_dict if user.role < role]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            #: send query
+            message = update.message.reply_text("Choose user to ban:", reply_markup=reply_markup)
+            
+            self._add_query_payload(message, context, self.admin_ban_user_command_callback)
+            
+        #: If query exists, handle user selection
+        else:
+            
+            if query.data not in self.users:
+                return #TODO user not found, maybe unsubscribed on his own
+            
+            user_to_move = from_dict.pop(query.data)
+            to_dict[user_to_ban] = user_to_ban
+            
+            #: inform user with new token
+            query.edit_message_text('{} was banned.'.format(user_to_ban.name))
+            
+            #: remove payload from context
+            del context.bot_data[query.message.message_id]
+        
+        
+    def owner_clear_all_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - OWNER
 
             Clears all users and admins except the owner
@@ -284,63 +391,43 @@ class SurveillanceBot:
         if not self._is_authorized(chat_id, authorization_level):
             self._send_text_msg(chat_id, 'Unauthorized!')
             return
-        ###########################
         
+        #
         owner = self.users.pop(chat_id)
         
         self._send_text_msg_to_lst(self.users, 'Your subscription was terminated.')
 
         self.tokens.clear()
         
-        self.admins.clear()
         self.users.clear()
-        self.admins[chat_id] = owner
         self.users[chat_id] = owner
 
 
     def button(self, update: Update, context: CallbackContext) -> None:
         """Parses the CallbackQuery and updates the message text."""
+        
         query = update.callback_query
         message_id = query.message.message_id
 
-        self.logger.warn("Update Message Id: " + str(query.message.message_id) + "  bot_data keys: " + str(context.bot_data.keys()))
 
         # CallbackQueries need to be answered, even if no notification to the user is needed
         # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
         query.answer()
 
-        if message_id not in context.bot_data.keys():
+        #: abort if no handler is filed
+        if message_id not in context.bot_data:
             #TODO handle error
             return
 
         #: delegate query data to filed handler method
-        context.bot_data[query.message.message_id].callback(update, context)
-
-        #query.edit_message_text(text=f"Selected option: {query.data}")
-
-    def create_token_choose_days_of_validity(self, update: Update, context: CallbackContext):
-
-        query = update.callback_query
-
-        keyboard = [
-            [InlineKeyboardButton(1, callback_data=1), InlineKeyboardButton(3, callback_data=3)],
-            [InlineKeyboardButton(5, callback_data=5), InlineKeyboardButton(10, callback_data=10)]
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        query.edit_message_text(text="Choose days of validity:")
-        query.edit_message_reply_markup(reply_markup=reply_markup)
-
-        update.message.reply_text("Choose days of validity:", reply_markup=reply_markup)
+        context.bot_data[message_id].callback(update, context)
 
     
-    def alert(self) -> None:
-        ''' Method to inform all subscribers when motion was detected.
-            Is called by the MotionDetectionHandler.
+    def alert(self, msg: str) -> None:
+        ''' Method to inform all subscribers with custom message
         '''
         
-        self._send_text_msg_to_lst(self.users, 'Movement detected!')
+        self._send_text_msg_to_lst(self.users, msg)
         
     def send_surveillance_video(self, video_path: str) -> None:
         ''' Sends the recorded surveillance video to every admin-user
@@ -350,7 +437,7 @@ class SurveillanceBot:
             return
         
         #: Iterate admins and send video to each
-        for admin in self.admins: 
+        for admin in self.users: 
             self.updater.bot.send_video(chat_id=admin, video=open(video_path, 'rb'), supports_streaming=True,  caption=utils.basename(video_path))
     
     def _add_query_payload(self, message: Message, context: CallbackContext, callback: Callable, data: object = None, stage: int = None):
@@ -413,7 +500,7 @@ class SurveillanceBot:
 
     def _get_all_users_as_text(self) -> str:
 
-        lst = ['ID: {} - Username: {} - Role: {}'.format(u.chat_id, u.name, cfg.RANK_TO_ROLE[u.role]) for u in self.users]
+        lst = ['{:14s} [ {:6s} ]'.format(u.name, cfg.ROLES[cfg.RANK_TO_ROLE[u.role]]) for u in self.users.values()]
         return '\n'.join(lst)
         
     
