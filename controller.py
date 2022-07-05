@@ -21,6 +21,9 @@ class Controller():
         self.detect_thread.start()
         
         self.motion_active = False
+
+        #: Logging setup
+        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s', level=logging.DEBUG)
         
         #: Init logger
         self.logger = logging.getLogger(__name__)

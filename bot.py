@@ -17,8 +17,8 @@ class SurveillanceBot():
         self.updater = Updater(token=cfg.TELEGRAM_API_TOKEN)
         self.dispatcher = self.updater.dispatcher
         
-        #: Logging setup
-        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s', level=logging.DEBUG)
+        #: Init logger
+        self.logger = logging.getLogger(__name__)
         
         #: Register activate-command-handler
         open_activate_command_handler = CommandHandler('activate', self.open_activate_command_callback)
@@ -232,7 +232,7 @@ class SurveillanceBot():
 
         message = update.message.reply_text("Choose user to unban:", reply_markup=reply_markup)
 
-        print("MESSAGE_ID:", message.message_id)
+        self.logger.warn("MESSAGE_ID:", message.message_id)
 
         payload = {
             message.message_id: self.unban
@@ -270,9 +270,9 @@ class SurveillanceBot():
         """Parses the CallbackQuery and updates the message text."""
         query = update.callback_query
 
-        print("update:", update, "bot_data:", context.bot_data)
+        self.logger.warn("update: " + update + "  bot_data: " + context.bot_data)
 
-        print("context", query)
+        self.logger.warn("context " + query)
 
         # CallbackQueries need to be answered, even if no notification to the user is needed
         # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
