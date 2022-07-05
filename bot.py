@@ -322,14 +322,15 @@ class SurveillanceBot():
         for admin in self.admins: 
             self.updater.bot.send_video(chat_id=admin, video=open(video_path, 'rb'), supports_streaming=True,  caption=utils.basename(video_path))
     
-    def _add_query_payload(self, message: Message, context: CallbackContext, callback: function, data: object):
+    def _add_query_payload(self, message: Message, context: CallbackContext, callback, data: object = None, stage: int = None):
 
         self.logger.warn(type(callback))
 
         payload = {
             message.message_id: {
+                'data': data,
+                'stage': stage,
                 'callback': callback,
-                'data': data
             }
         }
 
