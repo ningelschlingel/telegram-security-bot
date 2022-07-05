@@ -4,6 +4,7 @@ import string
 import random
 import logging
 import subprocess
+from typing import Callable
 
 def randomstr(length=8) -> str:
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k = length))
@@ -24,10 +25,10 @@ if __name__ == '__main__':
     #print(timestring())
     print(basename('/ajksdf/aksjfdh/jkasdfhiuva///askjdfh/82343789345u&%%/(5/file.txt/'))
 
-    def t():
-        print('somthing')
-
-    def test(a):
+    def t(a: Callable):
         a()
 
-    print(type(t))
+    def test():
+        print('something')
+
+    t(test)

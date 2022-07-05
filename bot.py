@@ -1,6 +1,8 @@
 import logging
+from typing import Callable
 from telegram import Message, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler
+from payload import Payload
 
 import utils
 import config as cfg
@@ -8,7 +10,7 @@ import config as cfg
 from user import User
 from usertoken import Token
 
-class SurveillanceBot():
+class SurveillanceBot:
     
     def __init__(self):
         ''' Inits and starts bot '''
@@ -138,14 +140,9 @@ class SurveillanceBot():
             #: -m mod-token
             #: -s user-token
         '''
+
         chat_id = update.effective_chat.id
         query = update.callback_query
-
-        self.logger.warn("NOW ENTERING QUERY LOGGING")
-
-        self.logger.warn(str(query))
-
-        self.logger.warn("... QUERY LOGGING DONE")
         
         ### Check authorization ###
         authorization_level = cfg.ROLE_TO_RANK[cfg.ADMIN_ROLE]
@@ -154,16 +151,46 @@ class SurveillanceBot():
             return
         ###########################
 
-        keyboard = [[InlineKeyboardButton(cfg.ROLES[cfg.RANK_TO_ROLE[i]], callback_data=i),] for i in range(1, 4)]
+        #: Start process
+        if not query:
 
-        reply_markup = InlineKeyboardMarkup(keyboard)
+            #: Build role option keyboard
+            keyboard = [[InlineKeyboardButton(cfg.ROLES[cfg.RANK_TO_ROLE[i]], callback_data=i),] for i in range(1, 4)]
+            reply_markup = InlineKeyboardMarkup(keyboard)
 
-        message = update.message.reply_text("Choose the authority level for the token:", reply_markup=reply_markup)
+            #: Send query for role options
+            message = update.message.reply_text("Choose the authority level for the token:", reply_markup=reply_markup)
 
-        self.logger.warn("MESSAGE_ID: " + str(message.message_id))
+            #: save payload
+            self._add_query_payload(message, context, self.admin_create_token_command_callback, None, 1)
 
-        self._add_query_payload(message, context, self.create_token_choose_days_of_validity, None, 1)
+        else:
 
+            payload: Payload = context.bot_data[query.message.message_id]
+
+            if payload.stage == 1:
+
+                keyboard = [
+                    [InlineKeyboardButton(1, callback_data=1), InlineKeyboardButton(3, callback_data=3)],
+                    [InlineKeyboardButton(5, callback_data=5), InlineKeyboardButton(10, callback_data=10)]
+                ]
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                payload.stage = 2
+                payload.data = { 'role', query.data }
+
+                query.edit_message_text(text="Choose days of validity:")
+                query.edit_message_reply_markup(reply_markup=reply_markup)
+
+                #self._add_query_payload(message, context, self.admin_create_token_command_callback, None, 2)
+
+            if payload.stage == 2:
+
+                t = Token(payload.data['role'], query.data)
+
+                self.logger.debug('New {} token {} is valid until: {}'.format(cfg.RANK_TO_ROLE[t.role], t.value, t.valid_until))
+                query.edit_message_text('New {} token {} is valid until: {}'.format(cfg.RANK_TO_ROLE[t.role], t.value, t.valid_until))
         
         '''
         if not context.args or context.args[0] not in cfg.TOKEN_OPTIONS:
@@ -326,19 +353,11 @@ class SurveillanceBot():
         for admin in self.admins: 
             self.updater.bot.send_video(chat_id=admin, video=open(video_path, 'rb'), supports_streaming=True,  caption=utils.basename(video_path))
     
-    def _add_query_payload(self, message: Message, context: CallbackContext, callback, data: object = None, stage: int = None):
+    def _add_query_payload(self, message: Message, context: CallbackContext, callback: Callable, data: object = None, stage: int = None):
 
-        self.logger.warn(type(callback))
+        payload_dict = { message.message_id: Payload(data, stage, callback) }
 
-        payload = {
-            message.message_id: {
-                'data': data,
-                'stage': stage,
-                'callback': callback,
-            }
-        }
-
-        context.bot_data.update(payload)
+        context.bot_data.update(payload_dict)
 
     def _is_authorized(self, chat_id, command_authorization_level) -> bool:
         ''' Check if user with given chat_id is authorized for command
