@@ -153,7 +153,7 @@ class SurveillanceBot():
 
         message = update.message.reply_text("Choose the authority level for the token:", reply_markup=reply_markup)
 
-        self.logger.warn("MESSAGE_ID:", message.message_id)
+        self.logger.warn("MESSAGE_ID: " + message.message_id)
         
         payload = { message.message_id: self.create_token_choose_days_of_validity }
         context.bot_data.update(payload)
