@@ -7,8 +7,12 @@ import utils
 
 
 class Camera():
+    ''' #TODO
+    '''
     
     def __init__(self):
+        ''' #TODO
+        '''
         
         #: PiCam setup
         self.cam = PiCamera()
@@ -24,7 +28,7 @@ class Camera():
         self.video_dir = '{path}/{directory}'.format(path = cfg.FILE_PATH, directory = cfg.VIDEO_DIR)
 
     def start_recording(self) -> None:
-        '''
+        ''' #TODO
         '''
         
         #: Only start if camera is currently not active
@@ -34,26 +38,32 @@ class Camera():
             self.video_name = utils.timestring()
             
             #: Start PiCamera recording
-            self.cam.start_recording(self._get_video_path(self.video_name, self.rec_extension))
-            self.logger.debug('recording started: ' + self._get_video_path(self.video_name, self.rec_extension))
             self.is_recording = True
+            self.cam.start_recording(self._get_video_path(self.video_name, self.rec_extension))
+            self.logger.debug('recording started: {}'.format(self.video_name + self.rec_extension))
         
     def stop_recording(self) -> str:
+        ''' #TODO
+        '''
+
         if self.is_recording:
             
+            #: save name in case a new video with different name starts during conversion
             self.converting_name = self.video_name
 
             #: Stop PiCamera recording
-            a = self.cam.stop_recording()
-            self.logger.debug(str(a))
-            self.logger.debug('recording stopped: ' + self._get_video_path(self.converting_name, self.rec_extension))
+            self.cam.stop_recording()
+            self.logger.debug('recording stopped: {}'.format(self.converting_name + self.convert_extension))
             self.is_recording = False
             self._convert()
             return self._get_video_path(self.converting_name, self.convert_extension)
         
         return None
     
-    def _get_video_path(self, name, extension) -> str:
+    def _get_video_path(self, name: str, extension: str) -> str:
+        ''' #TODO
+        '''
+
         return '{folder}/{name}{extension}'.format(folder = self.video_dir, name = name, extension = extension)
         
     def _convert(self) -> None:

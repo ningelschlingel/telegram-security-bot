@@ -15,3 +15,5 @@ if __name__=='__main__':
     u = User(123, 'username', Role.ADMIN)
 
     print(u)
+
+    print(36**8)
