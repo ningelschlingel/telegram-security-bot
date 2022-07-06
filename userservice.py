@@ -49,12 +49,6 @@ class UserService():
         self.tokens[owner_token.value] = owner_token
         self.owner: User = None
 
-        #TODO remove test users
-        
-        for i in range(4):
-            user = User(int(utils.randomstr(10, string.digits)), utils.randomstr(8, string.ascii_lowercase), Role(i))
-            self.users[user.chat_id] = user
-
     def get_users(self) -> UserDict:
         ''' #TODO
         '''
