@@ -62,7 +62,8 @@ class Controller():
             
             #: ... and camera is not yet recording and survaillance is not paused - start recording
             if not self.camera.is_recording and not self.surveillance_paused:
-                self._start_recording()
+                Thread(target = self._start_recording).start()
+                #self._start_recording()
         else:
             self.motion_active = False
                     
@@ -74,8 +75,10 @@ class Controller():
         self.camera.start_recording()
         self.logger.debug('Started recording')
         self.bot.alert('Motion detected, recording started!', Role.OPEN)
-        self.timer_thread = Thread(target = self._timer)
-        self.timer_thread.start()
+        self._timer()
+
+        #self.timer_thread = Thread(target = self._timer)
+        #self.timer_thread.start()
         
     def _stop_recording(self):
         '''
@@ -83,6 +86,7 @@ class Controller():
         
         video = self.camera.stop_recording()
         self.logger.debug('Stopped recording')
+
         self.bot.send_surveillance_video(video)
     
     def _timer(self):
@@ -106,13 +110,12 @@ class Controller():
             
             #: If motion is inactive for too long, stop video
             if inactive >= cfg.BUFFER_TIME_STEPS:
-                self._stop_recording()
+                Thread(target = self._stop_recording).start()
                 return
         
         #: If the recording oulasts the max lenght, stop
         if self.camera.is_recording:
-            video = self.camera.stop_recording()
-            self.bot.send_surveillance_video(video)
+            Thread(target = self._stop_recording).start()
             
             #: Start new recording only if surveillance is not paused
             if not self.surveillance_paused:
