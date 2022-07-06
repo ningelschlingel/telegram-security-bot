@@ -1,5 +1,5 @@
 # 📸 &nbsp; Telegram Security Bot
-Motion activated surveillance videos via telegram
+**Motion activated surveillance videos via telegram**
 
 - [Introduction](#--introduction)
 - [Installation](#--installation)
@@ -32,8 +32,8 @@ Motion activated surveillance videos via telegram
 # 🚀 &nbsp; Introduction
 
 This telegram-security-bot is made to be run on a Raspberry Pi zero W with a PiCamera and a RCWL-0516 radar-motion-sensor.
-When motion is detected, it informs authorized users via textmessage and starts the videorecording. When no furhter movements can be detected, the recording is stopped and also sent.
-To be somewhat sure, that no unauthorized users get access to these video-recordings, the bot is configured to allow basic user administration.
+When motion is detected, it informs authorized users via textmessage and starts the videorecording. When no further movements can be detected, the recording is stopped and sent.
+To be somewhat sure that no unauthorized users get access to these video-recordings, the bot to allows basic user administration.
 
 # 📁 &nbsp; Installation
 
