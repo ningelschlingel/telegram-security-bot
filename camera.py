@@ -41,13 +41,15 @@ class Camera():
     def stop_recording(self) -> str:
         if self.is_recording:
             
+            self.converting_name = self.video_name
+
             #: Stop PiCamera recording
             self.cam.stop_recording()
             self.logger.debug('recording stopped')
             self.is_recording = False
             
             self._convert()
-            return self._get_video_path(self.video_name, self.convert_extension)
+            return self._get_video_path(self.converting_name, self.convert_extension)
         
         return None
     
@@ -59,8 +61,8 @@ class Camera():
         '''
         
         #: Get current filename, and filename after converting
-        before = self._get_video_path(self.video_name, self.rec_extension)
-        after  = self._get_video_path(self.video_name, self.convert_extension)
+        before = self._get_video_path(self.converting_name, self.rec_extension)
+        after  = self._get_video_path(self.converting_name, self.convert_extension)
         
         #: Convert command (with semicolon to concatenate)
         convert = 'MP4Box -add {before} {after};'.format(before = before, after = after)

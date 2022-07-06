@@ -19,8 +19,7 @@ class Controller():
         self.rcwl = RCWL_0516(self.motion_state_change_callback)
         
         #: Start detecting in dedicated thread
-        self.detect_thread = Thread(target = self.rcwl.detect)
-        self.detect_thread.start()
+        Thread(target = self.rcwl.detect).start()
         
         self.motion_active = False
         
@@ -54,8 +53,6 @@ class Controller():
         '''
         '''
 
-        self.logger.debug('Motion {} [transmitted value: {}]'.format('started' if is_motion_start else 'ended  ', is_motion_start))
-        
         #: If motion sensor registered movement ...
         if is_motion_start:
             self.motion_active = True
@@ -63,7 +60,7 @@ class Controller():
             #: ... and camera is not yet recording and survaillance is not paused - start recording
             if not self.camera.is_recording and not self.surveillance_paused:
                 Thread(target = self._start_recording).start()
-                #self._start_recording()
+
         else:
             self.motion_active = False
                     

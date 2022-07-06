@@ -2,9 +2,7 @@ import os
 import time
 import string
 import random
-import logging
 import subprocess
-from typing import Callable
 
 def randomstr(length=8, charset=string.ascii_uppercase + string.digits) -> str:
     return ''.join(random.choices(charset, k = length))
