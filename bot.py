@@ -237,7 +237,7 @@ class SurveillanceBot:
             if payload.stage == 2:
                 
                 #: build token based on seletions
-                token = Token(Role(payload.data), int(query.data))
+                token = self.userservice.generate_token(Role(payload.data), int(query.data))
 
                 self.logger.debug('New {} token created'.format(token.role.name))
                 
