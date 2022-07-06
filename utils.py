@@ -10,7 +10,7 @@ def randomstr(length=8, charset=string.ascii_uppercase + string.digits) -> str:
     return ''.join(random.choices(charset, k = length))
 
 def shell_cmd(cmd) -> None:
-    subprocess.call(cmd, shell=True, stdout=subprocess.DEVNULL)
+    subprocess.call(cmd, shell=True) #, stdout=subprocess.DEVNULL)
     
 def timestring() -> str:
     return time.strftime('%Y-%m-%d-%Z-%H-%M-%S')
