@@ -15,16 +15,17 @@ Motion activated surveillance videos via telegram
 - [Usage](#usage)
   - [Commands](#commands)
     - [Example](#example)
-    - [Activate token](#activate-token)
-    - [Leave](#leave)
-    - [Show users](#show-users)
-    - [Generate token](#generate-token)
-    - [Clear tokens](#clear-tokens)
-    - [Pause](#pause)
-    - [Unpause](#unpause)
-    - [Ban](#ban)
-    - [Unban](#unban)
-    - [Clear](#clear)
+    - [/activate - Activate token](#activate-token)
+    - [/leave - Leave](#leave)
+    - [/users - Show registered users](#show-users)
+    - [/banned - Show banned users](#show-banned-users)
+    - [/token - Generate token](#generate-token)
+    - [/cleartokens Clear tokens](#clear-tokens)
+    - [/pause - Pause](#pause-surveillance)
+    - [/unpause - Unpause](#unpause-surveillance)
+    - [/ban - Ban user](#ban-user)
+    - [/unban - Unban user](#unban-user)
+    - [/clear - Clear all](#clear)
   - [Roles](#roles)
 
 
@@ -209,6 +210,18 @@ Use the `/users` command to get a list of all registered users.
 ```
 
 Example: `/users`
+
+---
+
+#### Show banned users
+
+Use the `/banned` command to get a list of all banned users.
+
+```
+/banned *MOD_ROLE
+```
+
+Example: `/banned`
 
 ---
 
