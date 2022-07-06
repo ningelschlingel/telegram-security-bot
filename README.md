@@ -33,7 +33,8 @@
 # 🚀 &nbsp; Introduction
 
 This telegram-security-bot is made to be run on a Raspberry Pi zero W with a PiCamera and a RCWL-0516 radar-motion-sensor.  
-When motion is detected, it informs authorized users via textmessage and starts the videorecording.
+
+When motion is detected, it notifies authorized users via textmessage and starts the videorecording.
 When no further movements can be detected, the recording is stopped and sent.
 To be somewhat sure that no unauthorized users get access to these recordings, the bot to allows basic user administration.
 
@@ -41,14 +42,14 @@ To be somewhat sure that no unauthorized users get access to these recordings, t
 
 - Get security camera footage anywere via telegram
 - Create activation tokens to give other users access
-- Manage users, ban, unban
+- Manage users
 - Pause and resume surveillance 
 
 # 📁 &nbsp; Installation
 
 ### Raspberry Pi setup
 
-Whether you are using an already set up Pi or a new one, make sure that you activate the camera and ssh if needed in the `raspi-config`.
+Whether you are using an already set up Pi or a new one, make sure that you activate the camera and if needed ssh in the `raspi-config`.
 
 ### Clone Project
 
@@ -139,6 +140,11 @@ If you decide to set up the systemd service on your own, make sure to replace bo
 - Raspberry Pi (zero) camera
 - RCWL-0516 radar-sensor
 
+### General
+
+Make sure that the Pi has permanent access to the internet.  
+Even though the Pi can run on a battery, a power supply is clearly preferable since the video recordings increase the power consumption significantly.
+
 ### Wiring
 
 The camera is simply plugged in with the enclosed ribbon cable. If you're buying a camera for this project, keep in mind that Pi Zero camera cables dont fit the bigger Pi's and vice versa.
@@ -154,6 +160,9 @@ CDS           |
 
 This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L5) accordingly.
 If you are interested in more details about the RCWL-0516, you should check [this](http://www.rogerclark.net/investigating-a-rcwl-9196-rcwl-0516-radar-motion-detector-modules/) out.
+
+**In my case the sensor was misfiring a lot when it was pressed tightly together with the Pi.  
+Keeping a little distance has solved the problem.**
 
 # 🌟 &nbsp; Usage
 
