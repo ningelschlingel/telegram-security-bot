@@ -31,12 +31,16 @@ class UserDict(dict):
 
 
 class UserService():
-    ''' #TODO
+    ''' UserService for basic user management
     '''
 
 
     def __init__(self):
-        ''' #TODO
+        ''' Init
+
+            #: initialising user and token dicts
+            #: creates owner token
+
         '''
 
         #: Init users, banned and token dict
@@ -49,32 +53,42 @@ class UserService():
         self.tokens[owner_token.value] = owner_token
         self.owner: User = None
 
+    def get_user(self, chat_id: int, default = None) -> Union[User, None]:
+        ''' Get user with chat_id, return default if not present
+        '''
+
+        return self.users.get(chat_id, default)
+
     def get_users(self) -> UserDict:
-        ''' #TODO
+        ''' Get users
         '''
         
         return self.users
 
     def get_banned(self) -> UserDict:
-        '''
+        ''' Get banned
         '''
 
         return self.banned
 
     def get_owner(self) -> Union[User, None]:
-        '''
+        ''' Get owner
         '''
 
         return self.owner
 
     def is_owner(self, chat_id) -> bool:
-        '''
+        ''' Check if chat_id belongs to owner
+
+            #: return -> wheter or not the user with given chat_id is the owner
         '''
 
         return chat_id in self.users and self.owner and self.users[chat_id] == self.owner
 
     def generate_token(self, role: Role, valid_for: int = 1) -> Token:
-        ''' #TODO
+        ''' Generates token with given role and validity period in days
+
+            #: return -> generated token
         '''
 
         token = Token(role, valid_for)
@@ -83,7 +97,9 @@ class UserService():
         return token
 
     def remove_user(self, chat_id: int) -> bool:
-        '''
+        ''' Removes user with given chat_id
+
+            #: return -> whether or not the user existed before he eventually was removed
         '''
 
         if chat_id in self.users:
@@ -93,7 +109,9 @@ class UserService():
         return False
 
     def remove_token(self, token_id: str) -> bool:
-        ''' #TODO
+        ''' Removes token with given token_id
+
+            #: return -> whether or not the token existed before it eventually was removed
         '''
 
         if token_id in self.tokens:
@@ -103,32 +121,38 @@ class UserService():
 
         return False
 
-    def clear_tokens(self):
-        '''
+    def clear_tokens(self) -> None:
+        ''' Removes all tokens
         '''
 
         self.tokens.clear()
     
     def remove_expired_tokens(self) -> None:
-        ''' #TODO   
+        ''' Removes all expired tokens 
         '''
 
         #: Remove expired tokens in dict comprehension filter
         self.tokens = { k:v for k,v in self.tokens.items() if v.is_valid() }
 
-    def activate_token(self, token_id, chat_id, username) -> Union[Role, None]:
-        ''' #TODO
+    def activate_token(self, token_id: str, chat_id: int, username: str) -> Union[User, None]:
+        ''' Activates token for user with given chat_id and username
+
+            #: Creates user if token is valid
+            #: Sets owner if token is owner-token and owner is not yet set
+
+            #: return -> user if activation was successful, else None
         '''
 
+        #: remove expired tokens
         self.remove_expired_tokens()
 
-        #: 
+        #: check if token is valid
         if token_id not in self.tokens:
             return None
 
         #: invalidate/remove token and create user
         token: Token = self.tokens.pop(token_id)
-        user = User(chat_id, username, token.role)
+        user: User = User(chat_id, username, token.role)
 
         if user.role is Role.OWNER:
 
@@ -145,37 +169,39 @@ class UserService():
         return user
 
     
-    def clear(self):
-        '''
+    def clear(self) -> None:
+        ''' Cleans everything except the owner
         '''
 
         owner = self.get_owner
-        
-        self._send_text_msg_to_lst(self.users, 'Your subscription was terminated.')
 
         self.tokens.clear()
         
         self.users.clear()
         self.users[owner.chat_id] = owner
 
-    def ban_user(self, id: str) -> bool:
-        ''' #TODO
+    def ban_user(self, chat_id: str) -> bool:
+        ''' Moves user from users to banned
+
+            #: return -> whether or not the user was present and moved
         '''
 
-        if id in self.users:
-            user: User = self.users.pop(id)
+        if chat_id in self.users:
+            user: User = self.users.pop(chat_id)
             self.banned[user.chat_id] = user
 
             return True
         
         return False
 
-    def unban_user(self, id: str) -> bool:
-        ''' #TODO
+    def unban_user(self, chat_id: str) -> bool:
+        ''' Moves user from banned to users
+
+            #: return -> whether or not the user was present and moved
         '''
 
-        if id in self.banned:
-            user: User = self.banned.pop(id)
+        if chat_id in self.banned:
+            user: User = self.banned.pop(chat_id)
             self.users[user.chat_id] = user
 
             return True
@@ -183,7 +209,9 @@ class UserService():
         return False
 
     def get_role_of(self, chat_id: int) -> Union[Role, None]:
-        ''' #TODO
+        ''' Gets role of user with provided chat_id
+
+            #: return -> role of user if present, else None
         '''
 
         if chat_id in self.users:
@@ -191,13 +219,19 @@ class UserService():
         return None
 
     def is_banned(self, chat_id: int) -> bool:
-        ''' #TODO
+        ''' Gets if user with provided chat_id is banned
+
+            #: User does not necessarly need to be activated
+
+            #: return -> whether or not user with given chat_id is present in banned
         '''
 
         return chat_id in self.banned
 
     def user_has_role(self, chat_id: int, role: Role) -> bool:
-        ''' #TODO
+        ''' Gets if user with provided chat_id has *at least* the provided role
+
+            #: return -> whether or not the user has the role if user is present in users, else None
         '''
 
         if chat_id in self.users:
@@ -205,19 +239,26 @@ class UserService():
         return None
 
     def users_as_str(self) -> str:
-        '''
+        ''' Gets all users as string separated by newlines
+
+            #: return -> users as string
         '''
 
         return self._user_dict_as_str(self.users)
 
     def banned_as_str(self) -> str:
+        ''' Gets all banned users as string separated by newlines
+
+            #: return -> banned as string
         '''
-        '''
+
         return self._user_dict_as_str(self.banned)
 
 
     def _user_dict_as_str(self, d: UserDict) -> str:
-        '''
+        ''' Helper for stringifying user dicts
+
+            #: return -> user dict as string
         '''
 
         lst = [str(e) for e in d.values()]

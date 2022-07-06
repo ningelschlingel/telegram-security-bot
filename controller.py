@@ -53,6 +53,8 @@ class Controller():
     def motion_state_change_callback(self, is_motion_start):
         '''
         '''
+
+        self.logger.debug('Motion {} [transmitted value: {}]'.format('started' if is_motion_start else 'ended  ', is_motion_start))
         
         #: If motion sensor registered movement ...
         if is_motion_start:
@@ -63,8 +65,6 @@ class Controller():
                 self._start_recording()
         else:
             self.motion_active = False
-
-        self.logger.debug('Motion {} [transmitted value: {}]'.format('started' if is_motion_start else 'ended  ', is_motion_start))
                     
     
     def _start_recording(self):

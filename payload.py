@@ -4,6 +4,6 @@ from typing import Callable
 @dataclass
 class Payload:
 
-    data: object
-    stage: int
     callback: Callable
+    data: object = None
+    stage: int = None

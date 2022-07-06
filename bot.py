@@ -1,24 +1,26 @@
-import string
 import logging
 from time import strftime
-from typing import Callable, Dict
+from typing import Callable
 from telegram import CallbackQuery, Message, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler
-from payload import Payload
-from role import Role
-from userservice import UserDict, UserService
 
 import utils
 import config as cfg
-#from userservice import UserService
 from user import User
-from usertoken import Token
+from role import Role
+from payload import Payload
+from userservice import UserDict, UserService
 
 class SurveillanceBot:
     
     def __init__(self, pause_unpause_callback: Callable):
         ''' Inits and starts bot '''
         
+        self._setup(pause_unpause_callback)
+        self.CALLBACK_ABORT = 'ABORT'
+        
+    def _setup(self, pause_unpause_callback: Callable):
+
         #: Init logger
         self.logger = logging.getLogger(__name__)
 
@@ -78,10 +80,13 @@ class SurveillanceBot:
 
         #: Register handler for query callbacks
         self.dispatcher.add_handler(CallbackQueryHandler(self.button))
+
+        #: Register error handler
+        self.dispatcher.add_error_handler(self.error_handler)
         
         #: Start
         self.updater.start_polling()
-        
+
 
     def open_activate_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /activate command - OPEN
@@ -118,6 +123,8 @@ class SurveillanceBot:
 
         
     def open_leave_command_callback(self, update: Update, context: CallbackContext) -> None:
+        ''' #TODO
+        '''
         
         chat_id: int = update.effective_chat.id
         
@@ -205,7 +212,9 @@ class SurveillanceBot:
             message: Message = update.message.reply_text("Choose the authority level for the token:", reply_markup=reply_markup)
 
             #: save payload
-            self._add_query_payload(message.message_id, context, self.admin_create_token_command_callback, None, 1)
+            payload_dict = { message.message_id: Payload(self.admin_create_token_command_callback, None, 1) }
+            context.bot_data.update(payload_dict)
+
 
         #: If query exists, handle user selection based on stage
         else:
@@ -249,7 +258,6 @@ class SurveillanceBot:
                 del context.bot_data[query.message.message_id]
                 
                 return 
-
 
     def admin_clear_tokens_command_callback(self, update: Update, context: CallbackContext) -> None:
         ''' Callback for the /clear command - ADMIN
@@ -303,7 +311,7 @@ class SurveillanceBot:
         
 
     def admin_ban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
-        '''
+        ''' Callback for the /ban command - ADMIN
         '''
 
         chat_id: int = update.effective_chat.id
@@ -318,7 +326,7 @@ class SurveillanceBot:
         
 
     def admin_unban_user_command_callback(self, update: Update, context: CallbackContext) -> None:
-        '''
+        ''' Callback for the /unban command - ADMIN
         '''
 
         chat_id: int = update.effective_chat.id
@@ -332,7 +340,13 @@ class SurveillanceBot:
         self._admin_ban_unban_user_helper(update, context, self.admin_unban_user_command_callback, self.userservice.banned, self.userservice.users, 'unbanned')
 
     def _admin_ban_unban_user_helper(self, update: Update, context: CallbackContext, callback: Callable, from_dict: UserDict, to_dict: UserDict, action_name: str) -> None:
-        
+        ''' Helper function
+            
+            #: Implements the usecase of banning and unbanning users
+            #: The order in which the dictionaries are passed, determines origin and destination 
+            #: InlineKeyboard if build from users in origin dict which have a less powerful role than the caller
+        '''
+
         chat_id: int = update.effective_chat.id
         query: CallbackQuery = update.callback_query
 
@@ -351,33 +365,37 @@ class SurveillanceBot:
         
             #: build ban-unban-user option keyboard
             keyboard = [[InlineKeyboardButton(user.name, callback_data=user.chat_id)] for user in from_dict.with_lower_role(role).values()]
+            keyboard.append([InlineKeyboardButton('[ ABORT ]', callback_data=self.CALLBACK_ABORT)])
+
             reply_markup = InlineKeyboardMarkup(keyboard)
             
             #: send query
             message: Message = update.message.reply_text("Select the user to be {}:".format(action_name), reply_markup=reply_markup)
             
-            self._add_query_payload(message.message_id, context, callback)
+            #: save payload
+            payload_dict = { message.message_id: Payload(callback) }
+            context.bot_data.update(payload_dict)
             
         #: If query exists, handle user selection
         else:
-            
-            self.logger.warn("User to be moved")
+
+            #: Abort if selected
+            if query.data == self.CALLBACK_ABORT:
+                update.message.reply_text("Action aborted.")
             
             #: If user not in from_dict, he cant be moved, abort
-            if query.data not in from_dict:
+            elif query.data not in from_dict:
                 update.message.reply_text("User not found, aborting.")
-                self.logger.warn("User not found, action aborted")
-                return
-
-            # TODO use userservice, required method references or other logic
-            
-            user_to_move: User = from_dict.pop(query.data)
-            to_dict[user_to_move.chat_id] = user_to_move
-            
-            self.logger.warn("User moved")
-            
-            #: inform user with new token
-            query.edit_message_text('{} was {}.'.format(user_to_move.name, action_name))
+                self.logger.debug("User not found - action aborted")
+                
+            else:
+                
+                # TODO use userservice, required method references or other logic
+                user_to_move: User = from_dict.pop(query.data)
+                to_dict[user_to_move.chat_id] = user_to_move
+                
+                #: inform user with new token
+                query.edit_message_text('{} was {}.'.format(user_to_move.name, action_name))
             
             #: remove payload from context
             del context.bot_data[query.message.message_id]
@@ -402,7 +420,8 @@ class SurveillanceBot:
 
 
     def button(self, update: Update, context: CallbackContext) -> None:
-        """Parses the CallbackQuery and updates the message text."""
+        ''' Parses the CallbackQuery and updates the message text.
+        '''
         
         query: CallbackQuery = update.callback_query
         message_id: int = query.message.message_id
@@ -436,18 +455,12 @@ class SurveillanceBot:
         #: Iterate admins and send video to each
         for chat_id in self.userservice.get_users().with_min_role(Role.ADMIN):
             self.updater.bot.send_video(chat_id=chat_id, video=open(video_path, 'rb'), supports_streaming=True,  caption=utils.basename(video_path))
-    
-    def _add_query_payload(self, message_id: int, context: CallbackContext, callback: Callable, data: object = None, stage: int = None) -> None:
-
-        payload_dict = { message_id: Payload(data, stage, callback) }
-
-        context.bot_data.update(payload_dict)
 
     def _is_authorized(self, chat_id: int, req_role: Role) -> bool:
         ''' Check if user with given chat_id is authorized for command
 
             #: chat_id                     - telegram chat_id
-            #: command_authorization_level - required authorization level to execute command
+            #: req_role - required role level to execute command
         '''
         
         #: Banned chat_ids are never authorized
@@ -468,10 +481,33 @@ class SurveillanceBot:
         for user in lst: 
             self.updater.bot.send_message(chat_id=user, text=text)
     
-    def _send_text_msg(self, chat_id: int, text: str) -> None:
+    def _send_text_msg(self, chat_id: int, text: str) -> Message:
         ''' Sends message to chat_id
 
             #: chat_id  - telegram chat_id
             #: text     - message text
         '''
-        self.updater.bot.send_message(chat_id=chat_id, text=text)
+        return self.updater.bot.send_message(chat_id=chat_id, text=text)
+
+    def error_handler(self, update: Update, context: CallbackContext) -> None:
+        ''' #TODO
+        '''
+
+        #: Log the error 
+        self.logger.error(msg='Exception while handling an update:', exc_info=context.error)
+        self.logger.debug('Refreshing bot ...')
+
+        #: Inform owner
+        message: Message = self._send_text_msg(self.userservice.owner.chat_id, 'Refreshing bot ...')
+
+        #: Rebuild updater and dispatcher
+        self._setup()
+
+        self.logger.debug('Bot refreshed')
+
+        #: Update message, refreshing done
+        message.edit_text('Bot refreshed.')
+
+
+
+
