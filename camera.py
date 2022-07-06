@@ -35,7 +35,7 @@ class Camera():
             
             #: Start PiCamera recording
             self.cam.start_recording(self._get_video_path(self.video_name, self.rec_extension))
-            self.logger.debug('recording started')
+            self.logger.debug('recording started: ' + self._get_video_path(self.video_name, self.rec_extension))
             self.is_recording = True
         
     def stop_recording(self) -> str:
@@ -44,10 +44,10 @@ class Camera():
             self.converting_name = self.video_name
 
             #: Stop PiCamera recording
-            self.cam.stop_recording()
-            self.logger.debug('recording stopped')
+            a = self.cam.stop_recording()
+            self.logger.debug(str(a))
+            self.logger.debug('recording stopped: ' + self._get_video_path(self.converting_name, self.rec_extension))
             self.is_recording = False
-            
             self._convert()
             return self._get_video_path(self.converting_name, self.convert_extension)
         
