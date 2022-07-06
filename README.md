@@ -2,6 +2,7 @@
 **Motion activated surveillance videos via telegram**
 
 - [Introduction](#--introduction)
+- [Features](#--features)
 - [Installation](#--installation)
   - [Raspberry Pi setup](#raspberry-pi-setup)
   - [Clone Project](#clone-project)
@@ -31,9 +32,17 @@
 
 # 🚀 &nbsp; Introduction
 
-This telegram-security-bot is made to be run on a Raspberry Pi zero W with a PiCamera and a RCWL-0516 radar-motion-sensor.
-When motion is detected, it informs authorized users via textmessage and starts the videorecording. When no further movements can be detected, the recording is stopped and sent.
-To be somewhat sure that no unauthorized users get access to these video-recordings, the bot to allows basic user administration.
+This telegram-security-bot is made to be run on a Raspberry Pi zero W with a PiCamera and a RCWL-0516 radar-motion-sensor.  
+When motion is detected, it informs authorized users via textmessage and starts the videorecording.
+When no further movements can be detected, the recording is stopped and sent.
+To be somewhat sure that no unauthorized users get access to these recordings, the bot to allows basic user administration.
+
+# 🧳 &nbsp; Features
+
+- Get security camera footage anywere via telegram
+- Create activation tokens to give other users access
+- Manage users, ban, unban
+- Pause and resume surveillance 
 
 # 📁 &nbsp; Installation
 
@@ -144,6 +153,7 @@ VIN           | PIN 2 (5V)
 CDS           |
 
 This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L5) accordingly.
+If you are interested in more details about the RCWL-0516, you should check [this](http://www.rogerclark.net/investigating-a-rcwl-9196-rcwl-0516-radar-motion-detector-modules/) out.
 
 # 🌟 &nbsp; Usage
 
