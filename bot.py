@@ -237,13 +237,13 @@ class SurveillanceBot:
             if payload.stage == 2:
                 
                 #: build token based on seletions
-                t = Token(Role(payload.data), int(query.data))
+                token = Token(Role(payload.data), int(query.data))
 
-                self.logger.debug('New {} token created'.format(t.role.name))
+                self.logger.debug('New {} token created'.format(token.role.name))
                 
                 #: inform user with new token
-                query.edit_message_text('{} token is valid until {}'.format(t.role.name.capitalize(), t.valid_until.strftime('%y/%m/%d, %H:%M')))
-                update.message.reply_text(t.value)
+                query.edit_message_text('{} token is valid until {}'.format(token.role.name.capitalize(), token.valid_until.strftime('%y/%m/%d, %H:%M')))
+                self._send_text_msg(chat_id, token.value)
                 
                 #: remove payload from context
                 del context.bot_data[query.message.message_id]
@@ -424,7 +424,7 @@ class SurveillanceBot:
         ''' Method to inform specified user group with custom message
         '''
         
-        self._send_text_msg_to_lst(self.userservice.get_users().with_min_role(req_role))
+        self._send_text_msg_to_lst(self.userservice.get_users().with_min_role(req_role), msg)
         
     def send_surveillance_video(self, video_path: str) -> None:
         ''' Sends the recorded surveillance video to every admin-user
