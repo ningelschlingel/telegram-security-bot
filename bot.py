@@ -223,9 +223,9 @@ class SurveillanceBot:
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 
-                #: update stage and save user seletion for later in payload data
+                #: update stage and save user selection for later in payload data
                 payload.stage = 2
-                payload.data = query.data
+                payload.data = int(query.data)
 
                 #: update query with days of validity options
                 query.edit_message_text(text="Choose days of validity:")
@@ -237,7 +237,7 @@ class SurveillanceBot:
             if payload.stage == 2:
                 
                 #: build token based on seletions
-                t = Token(int(payload.data), int(query.data))
+                t = Token(Role(payload.data), int(query.data))
 
                 self.logger.debug('New {} token created'.format(t.role.name))
                 
