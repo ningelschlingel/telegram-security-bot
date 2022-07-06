@@ -145,7 +145,7 @@ CDS           |
 
 This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L5) accordingly.
 
-# 🎉 &nbsp; Usage
+# 🌟 &nbsp; Usage
 
 Now that your bot is up and runnning, you should register yourself as the owner as long as the `OWNER_ACTIVATION_TOKEN` is valid.
 
