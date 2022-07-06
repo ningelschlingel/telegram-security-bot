@@ -33,5 +33,6 @@ if __name__ == '__main__':
     print(Role.min)
 
     print(operator.ge(Role.ADMIN, Role.MOD))
+    
 
 

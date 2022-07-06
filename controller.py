@@ -7,6 +7,7 @@ import config as cfg
 from camera import Camera
 from rcwl_0516 import RCWL_0516
 from bot import SurveillanceBot
+from role import Role
 
 class Controller():
     
@@ -72,7 +73,7 @@ class Controller():
         
         self.camera.start_recording()
         self.logger.debug('Started recording')
-        self.bot.alert('Motion detected, recording started!', 3)
+        self.bot.alert('Motion detected, recording started!', Role.OPEN)
         self.timer_thread = Thread(target = self._timer)
         self.timer_thread.start()
         
