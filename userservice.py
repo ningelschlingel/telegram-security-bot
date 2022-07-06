@@ -40,8 +40,8 @@ class UserService():
         '''
 
         #: Init users, banned and token dict
-        self.users: UserDict[int, User] = UserDict()
-        self.banned: UserDict[int, User] = UserDict()
+        self.users: UserDict = UserDict()
+        self.banned: UserDict = UserDict()
         self.tokens: Dict[str, Token] = {}
 
         # Create owner token
@@ -222,7 +222,7 @@ class UserService():
         return self._user_dict_as_str(self.banned)
 
 
-    def _user_dict_as_str(self, d: UserDict[int, User]) -> str:
+    def _user_dict_as_str(self, d: UserDict) -> str:
         '''
         '''
 

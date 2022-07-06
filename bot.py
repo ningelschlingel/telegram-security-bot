@@ -331,7 +331,7 @@ class SurveillanceBot:
 
         self._admin_ban_unban_user_helper(update, context, self.admin_unban_user_command_callback, self.userservice.banned, self.userservice.users, 'unbanned')
 
-    def _admin_ban_unban_user_helper(self, update: Update, context: CallbackContext, callback: Callable, from_dict: UserDict, to_dict: UserDict[str, User], action_name: str) -> None:
+    def _admin_ban_unban_user_helper(self, update: Update, context: CallbackContext, callback: Callable, from_dict: UserDict, to_dict: UserDict, action_name: str) -> None:
         
         chat_id: int = update.effective_chat.id
         query: CallbackQuery = update.callback_query
