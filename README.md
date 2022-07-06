@@ -1,18 +1,18 @@
-# Telegram Security Bot
+# 📸 &nbsp; Telegram Security Bot
 Motion activated surveillance videos via telegram
 
-- [Introduction](#introduction)
-- [Installation](#installation)
+- [Introduction](#--introduction)
+- [Installation](#--installation)
   - [Raspberry Pi setup](#raspberry-pi-setup)
   - [Clone Project](#clone-project)
   - [Create your Telegram-Bot](#create-your-telegram-bot)
   - [What are you up to?](#what-are-you-up-to)
   - [Script setup](#script-setup)
   - [Manual setup](#manual-setup)
-- [Hardware setup](#hardware-setup)
+- [Hardware setup](#--hardware-setup)
   - [Required parts](#required-parts)
   - [Wiring](#wiring)
-- [Usage](#usage)
+- [Usage](#--usage)
   - [Commands](#commands)
     - [Example](#example)
     - [/activate - Activate token](#activate-token)
@@ -29,13 +29,13 @@ Motion activated surveillance videos via telegram
   - [Roles](#roles)
 
 
-# Introduction
+# 🚀 &nbsp; Introduction
 
 This telegram-security-bot is made to be run on a Raspberry Pi zero W with a PiCamera and a RCWL-0516 radar-motion-sensor.
 When motion is detected, it informs authorized users via textmessage and starts the videorecording. When no furhter movements can be detected, the recording is stopped and also sent.
 To be somewhat sure, that no unauthorized users get access to these video-recordings, the bot is configured to allow basic user administration.
 
-# Installation
+# 📁 &nbsp; Installation
 
 ### Raspberry Pi setup
 
@@ -123,7 +123,7 @@ python3 -m app.py
 
 If you decide to set up the systemd service on your own, make sure to replace both [placeholders](https://github.com/ningelsohn/telegram-security-bot/blob/main/app.service#L6).
 
-# Hardware setup
+# 🛠 &nbsp; Hardware setup
 
 ### Required Parts:
 - Raspberry Pi zero W
@@ -145,7 +145,7 @@ CDS           |
 
 This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L5) accordingly.
 
-# Usage
+# 🎉 &nbsp; Usage
 
 Now that your bot is up and runnning, you should register yourself as the owner as long as the `OWNER_ACTIVATION_TOKEN` is valid.
 
