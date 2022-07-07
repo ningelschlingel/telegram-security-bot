@@ -40,7 +40,7 @@ To be somewhat sure that no unauthorized users get access to these recordings, t
 
 # 🧳 &nbsp; Features
 
-- Get security camera footage anywere via telegram
+- Get security camera footage anywhere via telegram
 - Create activation tokens to give other users access
 - Manage users
 - Pause and resume surveillance 
@@ -170,23 +170,16 @@ Now that your bot is up and runnning, you should register yourself as the owner 
 
 ### Commands
 
-***
+The following commands are documented with a specific format.
+The first section is the name of the command. This will trigger the handler for this specific command. 
+The second section is a parameter for this command. The majority of the commands don't require parameters.
+The last section specifies the role which is required to call this command. 
+The roles are strictly ordered and each role has the permissions of the respective subordinate roles.
 
-#### Example
-
-To understand the following list of commands, take a look at this example.
-The first section is the name of the command. This is, what the set up handlers respond to.  
 
 ```
-/command <PARAM_NAME:[<VALUE1>, <VALUE2>]> <?OPTIONAL_PARAM_NAME:DATATYPE> *ROLE
+/command <PARAM_NAME> *ROLE
 ```
-
-Some commands require additional parameters to funciton properly.
-There are required params like `<PARAM_NAME:[<VALUE1>, <VALUE2>]>` and optional params like `<?OPTIONAL_PARAM_NAME:DATATYPE>`.
-In both cases, the param has additional information about which values are accepted.
-This can either be a datatype like `STRING` or `INTEGER`, or a list of specific values.
-
-Furthermore, the `*ROLE` value indicates which role is required at least to use the command.
 
 ---
 
@@ -196,7 +189,7 @@ Use the `/activate` command to register as a new user.
 The token determines your authorizations.
 
 ```
-/activate <TOKEN:STRING> *OPEN_ROLE
+/activate <TOKEN> *OPEN_ROLE
 ```
 
 Usually a token is only valid for one day, so register promptly after receiving one.
