@@ -54,7 +54,7 @@ Whether you are using an already set up Pi or a new one, make sure that you acti
 ### Clone Project
 
   ```
-  git clone https://github.com/ningelsohn/wordclock.git
+  git clone https://github.com/ningelsohn/telegram-security-bot.git
   ```
   
 
