@@ -32,7 +32,7 @@
 
 # 🚀 &nbsp; Introduction
 
-This telegram-security-bot is made to be run on a Raspberry Pi zero W with a PiCamera and a RCWL-0516 radar-motion-sensor.  
+This telegram security bot is designed to run on a Raspberry Pi zero W with a PiCamera and a RCWL-0516 radar motion sensor.
 
 When motion is detected, it notifies authorized users via textmessage and starts the videorecording.
 When no further movements can be detected, the recording is stopped and sent.
