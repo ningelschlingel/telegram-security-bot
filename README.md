@@ -36,7 +36,7 @@ This telegram security bot is designed to run on a Raspberry Pi zero W with a Pi
 
 When motion is detected, it notifies authorized users via textmessage and starts the videorecording.
 When no further movements can be detected, the recording is stopped and sent.
-To be somewhat sure that no unauthorized users get access to these recordings, the bot to allows basic user administration.
+To be somewhat sure that no unauthorized users get access to these recordings, the bot allows basic user administration.
 
 # 🧳 &nbsp; Features
 
