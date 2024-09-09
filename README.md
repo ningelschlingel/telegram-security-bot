@@ -61,7 +61,7 @@ Whether you are using an already set up Pi or a new one, make sure that you acti
 ### Create your Telegram-Bot
 
 If you're new to telegram-bots, you can find an introduction by telegram [here](https://core.telegram.org/bots).  
-get your api-token and insert it in the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L4-L5) file along with a self-selected first activation token for you, the owner.  
+get your api-token and insert it in the [config.py](https://github.com/ningelschlingel/telegram-security-bot/blob/main/config.py#L4-L5) file along with a self-selected first activation token for you, the owner.  
 Once the bot is live, you will be able to register youself with that owner-token and take control,  
 so that no unauthorized persons have access to the surveillance videos.
 
@@ -83,7 +83,7 @@ If you dont want to use `venv` or a `systemd service`  you can jump to the [manu
 
   - Setting up virtual python environment and installing dependencies
   - Installing MP4Box for .h264-to-.mp4 converting
-  - Adjusting the [.service-file](https://github.com/ningelsohn/telegram-security-bot/blob/main/app.service#L6) according to the app-location
+  - Adjusting the [.service-file](https://github.com/ningelschlingel/telegram-security-bot/blob/main/app.service#L6) according to the app-location
   - Installing and activating systemd service (stars the app automatically)
   </details>
   
@@ -131,7 +131,7 @@ Start the appllication:
 python3 -m app.py
 ```
 
-If you decide to set up the systemd service on your own, make sure to replace both [placeholders](https://github.com/ningelsohn/telegram-security-bot/blob/main/app.service#L6).
+If you decide to set up the systemd service on your own, make sure to replace both [placeholders](https://github.com/ningelschlingel/telegram-security-bot/blob/main/app.service#L6).
 
 # 🛠 &nbsp; Hardware setup
 
@@ -158,7 +158,7 @@ OUT           | PIN 7 (GPIO 4)
 VIN           | PIN 2 (5V)
 CDS           |
 
-This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelsohn/telegram-security-bot/blob/main/config.py#L5) accordingly.
+This may vary, so make sure to look into the pinout. If your want to use another GPIO Pin, make sure to adjust the [config.py](https://github.com/ningelschlingel/telegram-security-bot/blob/main/config.py#L5) accordingly.
 If you are interested in more details about the RCWL-0516, you should check [this](http://www.rogerclark.net/investigating-a-rcwl-9196-rcwl-0516-radar-motion-detector-modules/) out.
 
 **In my case the sensor was misfiring a lot when it was pressed tightly together with the Pi.  
